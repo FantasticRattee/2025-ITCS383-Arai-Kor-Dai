@@ -1,4 +1,4 @@
-## C4 DIAGRAM
+# C4 DIAGRAM
 
 ### Context Diagram
 ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/e13499ef928f779d5dc8d4702e0618eea6119dd4/designs/context-diagram.svg.svg)
@@ -110,6 +110,7 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
 
