@@ -12,7 +12,9 @@
 ### Bank System
 ![Bank System](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/4c0842dfd54394c2be409812e9bdc35ee7670908/designs/Bank%20system%20App%20Diagram%20(Current).svg)
 
-![Post Office Management]()
+
+### Post Office Management
+![Post Office Management](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/400ae1d56b8820a655e708791b363b4a76a6bf07/designs/Post%20office%20management%20App%20Diagram%20(Current).svg)
 
 
 ## Component Diagram
@@ -112,6 +114,7 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
 
