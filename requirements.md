@@ -113,6 +113,8 @@ Customers are users who send parcels. They can register accounts, create shipmen
 Post Office Staff (Admin) <br>
 Admins are post office employees who manage the system. They approve user registrations, view shipment statistics, monitor revenue data, and export reports.
 
+Bank system  <br>
+The system provided for implement the gate ways payment.
 ## 7. Tools and Technologies
 Version Control
 
