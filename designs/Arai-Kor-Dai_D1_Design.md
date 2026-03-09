@@ -9,9 +9,6 @@
 ### Class Diagram
 ![Class Diagram](Class_Diagram_Arai-Kor-Dai.png)
 
-### DFD Diagram (Level 0)
-![DFD Diagram](designs/dfd-level0.png)
-
 # DFD Diagram (Level 0)
 ```mermaid
 flowchart LR
@@ -96,5 +93,6 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
