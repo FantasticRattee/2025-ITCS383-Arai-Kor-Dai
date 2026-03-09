@@ -18,7 +18,8 @@
 
 
 ## Component Diagram
-![Component Diagram]
+### Fronend/Backend
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/ac9f0d1e3d44d98954bb4d7080b0866cfb3b02fe/designs/Fronend_Backend%20App%20Diagram%20(Current).svg)
 
 
 
@@ -114,6 +115,7 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
 
