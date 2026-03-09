@@ -22,15 +22,21 @@
 ![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/ac9f0d1e3d44d98954bb4d7080b0866cfb3b02fe/designs/Fronend_Backend%20App%20Diagram%20(Current).svg)
 
 ### Shipping Service
-
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Shipping%20service%20App%20Diagram%20(Current).svg
+)
 ### Payment Service
+![Component Diagram]()
 
 ### Logistic Service
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Logistic%20engine%20App%20Diagram%20(Current).svg
+)
 
 ### Tracking Store Service
+![Component Diagram]( https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Tracking%20store%20service%20App%20Diagram%20(Current).svg
+)
 
 ### Office Service
-
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Office%20Service%20App%20Diagram%20(Current).svg)
 
 
 ### Use Case Diagram
@@ -123,6 +129,7 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
 
