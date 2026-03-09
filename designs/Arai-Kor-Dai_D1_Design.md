@@ -2,7 +2,8 @@
 
 ### Context Diagram 
 
-![Context Diagram](./design/context-diagram.svg)
+![Context Diagram](../design/context-diagram.svg)
+
 
 
 
