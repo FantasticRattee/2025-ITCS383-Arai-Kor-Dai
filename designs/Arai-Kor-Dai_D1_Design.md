@@ -25,7 +25,7 @@
 ![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Shipping%20service%20App%20Diagram%20(Current).svg
 )
 ### Payment Service
-![Component Diagram]()
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/551c6cf870adf7eb6b8147b7ea8fddb691eacb57/designs/Payment%20Services%20App%20Diagram%20(Current).svg)
 
 ### Logistic Service
 ![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/55f5149376e3976acfdc951efd4759ef5d147dde/designs/Logistic%20engine%20App%20Diagram%20(Current).svg
@@ -129,6 +129,7 @@ P6 -->|Read Payment Data| D3
 
 P6 -->|Reports / Statistics| Admin
 ```
+
 
 
 
