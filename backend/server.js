@@ -37,8 +37,8 @@ app.get('/health', (req, res) => {
   res.status(200).json({ message: 'Server is running' });
 });
 
-// API Routes (to be implemented)
-// app.use('/api', require('./routes'));
+// API Routes
+app.use('/api', require('./routes'));
 
 // ========================================
 // Error Handling Middleware

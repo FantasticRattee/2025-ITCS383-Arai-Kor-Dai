@@ -1,45 +1,44 @@
 /**
  * Routes Configuration
- * 
+ *
  * This file serves as the main router for all API endpoints.
  * All individual route files are imported and registered here.
- * 
- * Example:
- *   const authRoutes = require('./auth');
- *   router.use('/auth', authRoutes);
- * 
- * Available Routes (to be implemented):
- * - /auth - Authentication endpoints (login, logout, register)
- * - /customers - Customer management endpoints
- * - /parcels - Parcel management endpoints
- * - /tracking - Tracking endpoints
- * - /payments - Payment endpoints
- * - /notifications - Notification endpoints
+ *
+ * API Base Path: /api
+ *
+ * Available Routes:
+ * - /api/health - Health check endpoint
+ * - /api/customers - Customer management endpoints
+ * - /api/shipments - Shipment processing endpoints
+ * - /api/parcels - Parcel management endpoints
+ * - /api/payments - Payment processing endpoints
+ * - /api/tracking - Parcel tracking endpoints
  */
 
 const express = require('express');
 const router = express.Router();
 
-// Placeholder route for API health check
+// Import route modules
+const customerRoutes = require('./customers');
+const shipmentRoutes = require('./shipments');
+const parcelRoutes = require('./parcels');
+const paymentRoutes = require('./payments');
+const trackingRoutes = require('./tracking');
+
+// Health check endpoint
 router.get('/health', (req, res) => {
   res.status(200).json({
     message: 'API is running',
     timestamp: new Date().toISOString(),
+    version: '1.0.0'
   });
 });
 
-// TODO: Import and register individual route modules
-// const authRoutes = require('./auth');
-// const customerRoutes = require('./customers');
-// const parcelRoutes = require('./parcels');
-// const trackingRoutes = require('./tracking');
-// const paymentRoutes = require('./payments');
-
-// TODO: Register routes
-// router.use('/auth', authRoutes);
-// router.use('/customers', customerRoutes);
-// router.use('/parcels', parcelRoutes);
-// router.use('/tracking', trackingRoutes);
-// router.use('/payments', paymentRoutes);
+// Register API routes with /api prefix
+router.use('/customers', customerRoutes);
+router.use('/shipments', shipmentRoutes);
+router.use('/parcels', parcelRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/tracking', trackingRoutes);
 
 module.exports = router;

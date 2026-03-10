@@ -59,3 +59,73 @@ Technology stack overview
 ✓ API client with JWT token support and error handling
 ✓ Responsive CSS framework with mobile-first design
 ✓ All files include detailed comments explaining purpose and usage
+
+
+
+PostgreSQL Best Practices Implemented:
+
+SERIAL primary keys for auto-incrementing IDs
+Proper foreign key relationships with CASCADE/SET NULL constraints
+UNIQUE constraints on tracking numbers and emails
+TIMESTAMP WITH TIME ZONE for all timestamps
+JSONB fields for flexible data storage (dimensions, payment details, etc.)
+Comprehensive indexes on frequently queried columns
+Triggers for automatic updated_at timestamp management
+Supported Functionality:
+
+✅ Customer registration and account verification
+✅ Shipment creation with cost calculation
+✅ Insurance options
+✅ Online payments (credit card, PromptPay, e-wallet)
+✅ Shipping label generation (data structure supports PDF generation)
+✅ Parcel tracking with history
+✅ Transaction history
+✅ Admin statistics and revenue reports
+
+
+
+Key Features:
+Database Integration:
+
+Uses the pg library with connection pooling
+Parameterized queries for SQL injection prevention
+JSONB support for flexible data storage
+CRUD Operations:
+
+Create, Read, Update, Delete methods for all entities
+Advanced querying (by status, date ranges, relationships)
+Business Logic:
+
+Account verification workflows
+Payment processing
+Tracking updates
+Insurance calculations
+Revenue reporting
+Updated index.js:
+
+Centralized model exports for easy importing
+
+
+
+Key Features:
+RESTful API Design:
+
+Standard HTTP methods (GET, POST, PUT, DELETE)
+Consistent response format with success/error handling
+Parameter validation and error messages
+Business Logic:
+
+Auto-generation of tracking numbers and transaction IDs
+Status management workflows
+Revenue and statistics calculations
+Bulk operations for parcels
+Integration:
+
+Updated controllers/index.js and routes/index.js
+Modified server.js to register API routes at /api
+All routes properly connected to controllers
+Security Considerations:
+
+Parameterized queries prevent SQL injection
+Input validation on critical operations
+Proper error handling without exposing sensitive data
