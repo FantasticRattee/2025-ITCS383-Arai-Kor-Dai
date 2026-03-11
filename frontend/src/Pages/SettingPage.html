@@ -1288,7 +1288,7 @@ body::before{
 </main>
 
 <!-- Delete Confirm Modal -->
-<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;">
+<div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:18px;padding:28px;max-width:380px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.2);">
     <div style="font-size:2rem;text-align:center;margin-bottom:12px;">⚠️</div>
     <h3 style="font-family:'Barlow',serif;font-size:1.1rem;color:#1a1a2e;text-align:center;margin-bottom:8px;">Delete Account?</h3>
@@ -1366,4 +1366,20 @@ document.addEventListener('DOMContentLoaded',()=>{
       const labels = ['','Weak','Fair','Good','Strong'];
       bar.style.width = w+'%';
       bar.style.background = colors[score] || '#FFD0D0';
-      lbl.textContent = score > 0 ? la
+      lbl.textContent = score > 0 ? labels[score] : '';
+    });
+  }
+});
+
+// Confirm delete modal
+function confirmDelete(){
+  const modal = document.getElementById('modal-overlay');
+  modal.style.display = 'flex';
+}
+function closeModal(){
+  const modal = document.getElementById('modal-overlay');
+  modal.style.display = 'none';
+}
+</script>
+</body>
+</html>
