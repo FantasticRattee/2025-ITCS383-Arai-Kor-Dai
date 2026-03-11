@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Parcel Tracking</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+
+height:100vh;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+background:linear-gradient(135deg,#4f8cff,#7fd6ff);
+
+}
+
+/* CARD */
+
+.container{
+
+width:500px;
+
+padding:40px;
+
+border-radius:15px;
+
+background:rgba(255,255,255,0.95);
+
+backdrop-filter:blur(10px);
+
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
+
+animation:fadeIn 0.7s ease;
+
+}
+
+h2{
+
+text-align:center;
+margin-bottom:25px;
+
+}
+
+/* INPUT */
+
+.search-box{
+
+display:flex;
+gap:10px;
+margin-bottom:25px;
+
+}
+
+.search-box input{
+
+flex:1;
+
+padding:12px;
+
+border-radius:8px;
+
+border:1px solid #ddd;
+
+outline:none;
+
+}
+
+.search-box button{
+
+padding:12px 18px;
+
+border:none;
+
+border-radius:8px;
+
+background:linear-gradient(90deg,#4f8cff,#3a6eea);
+
+color:white;
+
+cursor:pointer;
+
+transition:0.3s;
+
+}
+
+.search-box button:hover{
+
+transform:translateY(-2px);
+
+}
+
+/* RESULT */
+
+.result{
+
+margin-top:20px;
+
+}
+
+.result h3{
+
+margin-bottom:10px;
+
+}
+
+.status{
+
+padding:10px;
+
+border-radius:6px;
+
+background:#eaf2ff;
+
+margin-bottom:15px;
+
+}
+
+/* HISTORY */
+
+.history{
+
+margin-top:10px;
+
+}
+
+.history-item{
+
+padding:10px;
+
+border-bottom:1px solid #eee;
+
+font-size:14px;
+
+}
+
+/* LINK */
+
+.switch{
+
+margin-top:20px;
+
+text-align:center;
+
+}
+
+.switch a{
+
+text-decoration:none;
+
+color:#4f8cff;
+
+font-weight:600;
+
+}
+
+/* ANIMATION */
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+transform:translateY(20px);
+}
+
+to{
+opacity:1;
+transform:translateY(0);
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Track Your Parcel</h2>
+
+<div class="search-box">
+
+<input type="text" id="trackingNumber" placeholder="Enter Tracking Number">
+
+<button onclick="trackParcel()">
+<i class="fa fa-search"></i>
+</button>
+
+</div>
+
+<div id="result" class="result"></div>
+
+<div class="switch">
+<a href="LoginPage.html">Back to Login</a>
+</div>
+
+</div>
+
+<script>
+
+async function trackParcel(){
+
+const trackingNumber=document.getElementById("trackingNumber").value
+
+if(!trackingNumber){
+
+alert("Please enter tracking number")
+
+return
+
+}
+
+try{
+
+const response=await fetch(`http://localhost:3000/api/parcels/${trackingNumber}`)
+
+const data=await response.json()
+
+if(!response.ok){
+
+document.getElementById("result").innerHTML="Parcel not found"
+
+return
+
+}
+
+let historyHTML=""
+
+if(data.history){
+
+data.history.forEach(item=>{
+
+historyHTML+=`
+
+<div class="history-item">
+
+${item.status} - ${item.date}
+
+</div>
+
+`
+
+})
+
+}
+
+document.getElementById("result").innerHTML=`
+
+<h3>Tracking Number: ${data.trackingNumber}</h3>
+
+<div class="status">
+
+Current Status: <strong>${data.status}</strong>
+
+</div>
+
+<div class="history">
+
+<h4>Tracking History</h4>
+
+${historyHTML}
+
+</div>
+
+`
+
+}catch(error){
+
+document.getElementById("result").innerHTML="Server error"
+
+}
+
+}
+
+</script>
+
+</body>
+
+</html>

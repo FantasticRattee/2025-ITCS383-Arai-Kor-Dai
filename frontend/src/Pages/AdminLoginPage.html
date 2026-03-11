@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Office — Admin Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark: #1a0505;
+      --bg-mid: #180606;
+      --bg-card: #1e0808;
+      --bg-input: #280c0c;
+      --border: #3d1010;
+      --border-focus: #c0392b;
+      --accent: #c0392b;
+      --accent-light: #e07070;
+      --accent-glow: rgba(192,57,43,0.35);
+      --text: #e8e6f5;
+      --text-muted: #7c789e;
+      --error: #f87171;
+      --error-bg: rgba(248,113,113,0.12);
+      --green: #34d399;
+      --gold: #f59e0b;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-dark);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Dark gradient mesh */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(192,57,43,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 85% 80%, rgba(153,27,27,0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(30,5,5,0.8) 0%, transparent 100%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Noise texture */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Animated grid lines */
+    .grid-lines {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(192,57,43,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(192,57,43,0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+      animation: gridShift 20s linear infinite;
+    }
+    @keyframes gridShift { from { background-position: 0 0; } to { background-position: 48px 48px; } }
+
+    /* Floating orbs */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(90px); pointer-events: none; z-index: 0;
+      animation: orbFloat 12s ease-in-out infinite alternate;
+    }
+    .o1 { width: 400px; height: 400px; background: rgba(192,57,43,0.15); top: -120px; left: -100px; }
+    .o2 { width: 300px; height: 300px; background: rgba(153,27,27,0.2);   bottom: -80px; right: -80px; animation-delay: 5s; }
+    .o3 { width: 180px; height: 180px; background: rgba(224,112,112,0.1); top: 42%; left: 58%; animation-delay: 8s; }
+    @keyframes orbFloat { from { transform: translateY(0) scale(1); } to { transform: translateY(-30px) scale(1.06); } }
+
+    /* Corner scanline decorations */
+    .corner { position: fixed; width: 60px; height: 60px; pointer-events: none; z-index: 1; }
+    .corner svg { width: 100%; height: 100%; }
+    .c-tl { top: 20px; left: 20px; }
+    .c-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+    .c-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+    .c-br { bottom: 20px; right: 20px; transform: scale(-1); }
+
+    /* Shell */
+    .shell {
+      position: relative; z-index: 2;
+      width: 100%; max-width: 900px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 1px rgba(192,57,43,0.15),
+        0 32px 80px rgba(0,0,0,0.6),
+        0 0 80px rgba(192,57,43,0.08);
+      animation: shellIn 0.6s cubic-bezier(.22,.68,0,1.15) both;
+    }
+    @keyframes shellIn { from { opacity: 0; transform: translateY(28px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* ── Left Panel ── */
+    .left-panel {
+      background: linear-gradient(160deg, #1a0606 0%, #110303 100%);
+      padding: 52px 44px;
+      display: flex; flex-direction: column;
+      justify-content: space-between;
+      position: relative; overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    /* Left panel inner glow */
+    .left-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 30% 30%, rgba(192,57,43,0.12) 0%, transparent 70%);
+    }
+
+    /* Hex pattern bg */
+    .left-panel::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V18L28 2l28 16v32L28 66zm0 34L0 84V52l28-16 28 16v32L28 100z' fill='none' stroke='rgba(192,57,43,0.06)' stroke-width='1'/%3E%3C/svg%3E");
+      opacity: 1;
+    }
+
+    .brand-logo {
+      display: flex; align-items: center; gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .logo-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, rgba(192,57,43,0.3), rgba(224,112,112,0.2));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      border: 1px solid rgba(192,57,43,0.4);
+      box-shadow: 0 0 20px rgba(192,57,43,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .logo-text h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text); line-height: 1;
+    }
+    .logo-text p {
+      font-size: 0.67rem; color: var(--text-muted);
+      font-weight: 400; margin-top: 2px;
+      letter-spacing: 1.8px; text-transform: uppercase;
+    }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 6px;
+      padding: 5px 12px;
+      margin-top: 10px;
+      width: fit-content;
+      position: relative; z-index: 1;
+    }
+    .admin-badge .ab-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: blink 2s ease infinite; }
+    .admin-badge span { font-size: 0.68rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .brand-body {
+      position: relative; z-index: 1;
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center; padding: 36px 0 16px;
+    }
+    .brand-body h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem; font-weight: 700;
+      color: var(--text); line-height: 1.25; margin-bottom: 10px;
+    }
+    .brand-body h1 em { font-style: normal; color: var(--accent-light); }
+    .brand-body p { font-size: 0.83rem; color: var(--text-muted); line-height: 1.65; font-weight: 300; }
+
+    .admin-perms {
+      margin-top: 28px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .perm-item {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .perm-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(192,57,43,0.15);
+      border: 1px solid rgba(192,57,43,0.25);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+    .perm-text { font-size: 0.78rem; color: rgba(232,230,245,0.7); }
+
+    /* Security indicator */
+    .security-strip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: 8px;
+      position: relative; z-index: 1;
+    }
+    .security-strip svg { color: var(--green); width: 14px; height: 14px; flex-shrink: 0; }
+    .security-strip span { font-size: 0.71rem; color: var(--green); font-weight: 600; }
+
+    .brand-footer { position: relative; z-index: 1; font-size: 0.67rem; color: var(--text-muted); margin-top: 14px; }
+
+    /* ── Right Panel (Form) ── */
+    .form-panel {
+      background: var(--bg-card);
+      padding: 52px 44px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .form-head { margin-bottom: 28px; }
+    .form-head h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem; font-weight: 700;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .form-head p { font-size: 0.84rem; color: var(--text-muted); font-weight: 300; }
+
+    /* Access level tabs */
+    .access-tabs {
+      display: grid; grid-template-columns: 1fr 1fr;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 3px;
+      margin-bottom: 24px;
+    }
+    .access-tab {
+      padding: 9px;
+      border-radius: 7px; border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.2s;
+    }
+    .access-tab:hover { color: var(--text); }
+    .access-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 12px var(--accent-glow); }
+    .access-tab svg { width: 13px; height: 13px; }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 0.76rem; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 7px;
+      text-transform: uppercase; letter-spacing: 0.6px;
+    }
+    .field label .req { color: var(--accent-light); margin-left: 2px; }
+
+    .input-wrap {
+      display: flex; align-items: center;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrap:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .input-wrap.error { border-color: var(--error); }
+    .input-wrap.error:focus-within { box-shadow: 0 0 0 3px rgba(248,113,113,0.2); }
+
+    .ii { color: var(--text-muted); display: flex; align-items: center; margin-right: 10px; flex-shrink: 0; }
+    .ii svg { width: 15px; height: 15px; }
+
+    .input-wrap input {
+      border: none; background: transparent; outline: none;
+      flex: 1; padding: 12px 0;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+      color: var(--text);
+    }
+    .input-wrap input::placeholder { color: #5a2020; }
+
+    .toggle-pw {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); display: flex; align-items: center;
+      transition: color 0.15s; padding: 0;
+    }
+    .toggle-pw:hover { color: var(--accent-light); }
+    .toggle-pw svg { width: 16px; height: 16px; }
+
+    .field-error { font-size: 0.72rem; color: var(--error); margin-top: 5px; display: none; }
+    .field-error.show { display: block; }
+
+    /* 2FA field (hidden by default) */
+    .twofa-field { display: none; }
+    .twofa-field.show { display: block; }
+    .twofa-hint { font-size: 0.73rem; color: var(--text-muted); margin-top: 5px; }
+
+    /* OTP inputs */
+    .otp-row { display: flex; gap: 8px; justify-content: center; margin-top: 6px; }
+    .otp-box {
+      width: 44px; height: 52px;
+      background: var(--bg-input); border: 1.5px solid var(--border);
+      border-radius: 10px; text-align: center;
+      font-family: 'DM Sans', sans-serif; font-size: 1.3rem;
+      font-weight: 700; color: var(--text);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .otp-box:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    /* Meta row */
+    .form-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .remember { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .remember input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+    .remember span { font-size: 0.78rem; color: var(--text-muted); }
+    .forgot-link { font-size: 0.78rem; color: var(--accent-light); text-decoration: none; font-weight: 500; transition: color 0.15s; }
+    .forgot-link:hover { color: var(--text); }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, #c0392b, #b71c1c);
+      color: #fff; border: none; border-radius: 10px;
+      font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 500;
+      cursor: pointer; letter-spacing: 0.3px;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent); pointer-events: none; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(192,57,43,0.5); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn.loading { opacity: 0.7; pointer-events: none; }
+    .btn-spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .submit-btn.loading .btn-txt { display: none; }
+    .submit-btn.loading .btn-ico { display: none; }
+    .submit-btn.loading .btn-spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--text-muted); font-size: 0.72rem; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Back to user login */
+    .user-login-link {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: 100%; padding: 11px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.84rem; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      transition: all 0.2s;
+    }
+    .user-login-link:hover { border-color: rgba(192,57,43,0.5); color: var(--text); background: rgba(192,57,43,0.06); }
+    .user-login-link svg { width: 14px; height: 14px; }
+
+    /* Alert banner */
+    .alert-banner {
+      display: none; align-items: center; gap: 10px;
+      background: var(--error-bg); border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 9px; padding: 10px 14px; margin-bottom: 16px;
+    }
+    .alert-banner.show { display: flex; }
+    .alert-banner svg { color: var(--error); width: 16px; height: 16px; flex-shrink: 0; }
+    .alert-banner span { font-size: 0.8rem; color: var(--error); }
+
+    /* Success */
+    .success-state { display: none; text-align: center; padding: 20px 0; animation: fadeUp 0.4s ease both; }
+    .success-state.show { display: block; }
+    .s-icon { font-size: 3.2rem; display: block; margin-bottom: 12px; animation: popIn 0.5s cubic-bezier(.22,.68,0,1.4) both 0.1s; }
+    .success-state h3 { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--text); margin-bottom: 6px; }
+    .success-state p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+    .success-role { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 5px 14px; font-size: 0.76rem; font-weight: 700; color: var(--gold); margin-top: 14px; letter-spacing: 0.5px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Responsive */
+    @media (max-width: 680px) {
+      .shell { grid-template-columns: 1fr; max-width: 420px; }
+      .left-panel { padding: 32px 28px; }
+      .admin-perms { display: none; }
+      .form-panel { padding: 36px 28px; }
+      .corner { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background layers -->
+  <div class="grid-lines"></div>
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+
+  <!-- Corner decorations -->
+  <div class="corner c-tl"><svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 30 L0 0 L30 0" stroke="rgba(192,57,43,0.4)" stroke-width="1.5"/><path d="M0 48 L0 0 L48 0" stroke="rgba(192,57,43,0.15)" stroke-width="1"/></svg></div>
+  <div class="corner c-tr"><svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 30 L0 0 L30 0" stroke="rgba(192,57,43,0.4)" stroke-width="1.5"/><path d="M0 48 L0 0 L48 0" stroke="rgba(192,57,43,0.15)" stroke-width="1"/></svg></div>
+  <div class="corner c-bl"><svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 30 L0 0 L30 0" stroke="rgba(192,57,43,0.4)" stroke-width="1.5"/><path d="M0 48 L0 0 L48 0" stroke="rgba(192,57,43,0.15)" stroke-width="1"/></svg></div>
+  <div class="corner c-br"><svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 30 L0 0 L30 0" stroke="rgba(192,57,43,0.4)" stroke-width="1.5"/><path d="M0 48 L0 0 L48 0" stroke="rgba(192,57,43,0.15)" stroke-width="1"/></svg></div>
+
+  <div class="shell">
+
+    <!-- Left panel -->
+    <div class="left-panel">
+      <div>
+        <div class="brand-logo">
+          <div class="logo-icon">🛡️</div>
+          <div class="logo-text">
+            <h2>Post Office</h2>
+            <p>Admin Portal</p>
+          </div>
+        </div>
+        <div class="admin-badge">
+          <div class="ab-dot"></div>
+          <span>Restricted Access</span>
+        </div>
+      </div>
+
+      <div class="brand-body">
+        <h1>
+          Admin<br>
+          <em>Control Centre</em>
+        </h1>
+        <p>Secure access for authorised postal administration staff. All sessions are logged and monitored.</p>
+
+        <div class="admin-perms">
+          <div class="perm-item">
+            <div class="perm-icon">📊</div>
+            <span class="perm-text">System-wide analytics & reports</span>
+          </div>
+          <div class="perm-item">
+            <div class="perm-icon">👥</div>
+            <span class="perm-text">User account management</span>
+          </div>
+          <div class="perm-item">
+            <div class="perm-icon">📦</div>
+            <span class="perm-text">All shipment oversight</span>
+          </div>
+          <div class="perm-item">
+            <div class="perm-icon">⚙️</div>
+            <span class="perm-text">System configuration & settings</span>
+          </div>
+          <div class="perm-item">
+            <div class="perm-icon">🔐</div>
+            <span class="perm-text">Role & permission management</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="security-strip">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <span>256-bit SSL · Session logged · 2FA enabled</span>
+        </div>
+        <div class="brand-footer" style="margin-top:12px;">© 2024 Thai Post Office — Admin v2.4.1</div>
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="form-panel">
+
+      <div id="mainForm">
+        <div class="form-head">
+          <h2>Admin Sign In</h2>
+          <p>Restricted to authorised personnel only</p>
+        </div>
+
+        <!-- Access level tabs -->
+        <div class="access-tabs">
+          <button class="access-tab active" id="tabSuperAdmin" onclick="setLevel('superadmin')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            Super Admin
+          </button>
+          <button class="access-tab" id="tabStaff" onclick="setLevel('staff')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+            Staff Admin
+          </button>
+        </div>
+
+        <!-- Error alert -->
+        <div class="alert-banner" id="alertBanner">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span id="alertMsg">Invalid credentials. Please try again.</span>
+        </div>
+
+        <div class="field">
+          <label>Admin ID / Username <span class="req">*</span></label>
+          <div class="input-wrap" id="w-uid">
+            <span class="ii"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg></span>
+            <input type="text" id="uid" placeholder="e.g. admin_001 or SA-2024" />
+          </div>
+          <div class="field-error" id="e-uid">Admin ID is required.</div>
+        </div>
+
+        <div class="field">
+          <label>Password <span class="req">*</span></label>
+          <div class="input-wrap" id="w-pw">
+            <span class="ii"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+            <input type="password" id="pw" placeholder="Enter admin password" />
+            <button type="button" class="toggle-pw" onclick="togglePw()" >
+              <svg id="eyeIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="e-pw">Password is required.</div>
+        </div>
+
+        <!-- 2FA field -->
+        <div class="field twofa-field" id="twofaField">
+          <label>Two-Factor Authentication Code</label>
+          <div class="otp-row">
+            <input class="otp-box" id="otp1" maxlength="1" oninput="otpNext(this,'otp2')" />
+            <input class="otp-box" id="otp2" maxlength="1" oninput="otpNext(this,'otp3')" onkeydown="otpBack(event,this,'otp1')" />
+            <input class="otp-box" id="otp3" maxlength="1" oninput="otpNext(this,'otp4')" onkeydown="otpBack(event,this,'otp2')" />
+            <input class="otp-box" id="otp4" maxlength="1" oninput="otpNext(this,'otp5')" onkeydown="otpBack(event,this,'otp3')" />
+            <input class="otp-box" id="otp5" maxlength="1" oninput="otpNext(this,'otp6')" onkeydown="otpBack(event,this,'otp4')" />
+            <input class="otp-box" id="otp6" maxlength="1" onkeydown="otpBack(event,this,'otp5')" />
+          </div>
+          <div class="twofa-hint">Enter the 6-digit code from your authenticator app.</div>
+        </div>
+
+        <div class="form-meta">
+          <label class="remember">
+            <input type="checkbox" id="staySignedIn" />
+            <span>Stay signed in</span>
+          </label>
+          <a href="#" class="forgot-link">Reset access</a>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="handleAdminLogin()">
+          <span class="btn-txt">Access Admin Portal</span>
+          <svg class="btn-ico" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+          <span class="btn-spinner"></span>
+        </button>
+
+        <div class="divider"><span>back to</span></div>
+
+        <a href="LoginPage.html" class="user-login-link">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          User Login
+        </a>
+      </div>
+
+      <!-- 2FA Step -->
+      <div id="twoFaStep" style="display:none; animation: fadeUp 0.4s ease both;">
+        <div class="form-head">
+          <h2>Verify Identity</h2>
+          <p>Enter the 6-digit code from your authenticator app</p>
+        </div>
+
+        <div style="text-align:center; margin: 10px 0 24px;">
+          <div style="font-size:3rem; margin-bottom:10px;">🔐</div>
+          <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">A verification code has been sent to your authenticator. This step ensures your admin account is secure.</p>
+        </div>
+
+        <div class="otp-row" style="margin-bottom:8px;">
+          <input class="otp-box" id="s2otp1" maxlength="1" oninput="otpNext(this,'s2otp2')" />
+          <input class="otp-box" id="s2otp2" maxlength="1" oninput="otpNext(this,'s2otp3')" onkeydown="otpBack(event,this,'s2otp1')" />
+          <input class="otp-box" id="s2otp3" maxlength="1" oninput="otpNext(this,'s2otp4')" onkeydown="otpBack(event,this,'s2otp2')" />
+          <input class="otp-box" id="s2otp4" maxlength="1" oninput="otpNext(this,'s2otp5')" onkeydown="otpBack(event,this,'s2otp3')" />
+          <input class="otp-box" id="s2otp5" maxlength="1" oninput="otpNext(this,'s2otp6')" onkeydown="otpBack(event,this,'s2otp4')" />
+          <input class="otp-box" id="s2otp6" maxlength="1" onkeydown="otpBack(event,this,'s2otp5')" />
+        </div>
+        <p style="font-size:0.72rem; color:var(--text-muted); text-align:center; margin-bottom:24px;">Try any 6 digits for this demo</p>
+
+        <button class="submit-btn" id="otpBtn" onclick="verifyOtp()">
+          <span class="btn-txt">Verify & Continue</span>
+          <svg class="btn-ico" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="btn-spinner"></span>
+        </button>
+
+        <button onclick="backToLogin()" style="width:100%;margin-top:12px;padding:10px;background:none;border:1.5px solid var(--border);border-radius:10px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:0.83rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(192,57,43,0.5)'" onmouseout="this.style.borderColor='var(--border)'">
+          ← Back
+        </button>
+      </div>
+
+      <!-- Success -->
+      <div class="success-state" id="successState">
+        <span class="s-icon">🛡️</span>
+        <h3>Access Granted</h3>
+        <p>Welcome to the Admin Control Centre.<br>Redirecting to your dashboard…</p>
+        <div class="success-role" id="successRole">⭐ Super Admin</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let adminLevel = 'superadmin';
+    let pwVisible = false;
+
+    function setLevel(level) {
+      adminLevel = level;
+      document.getElementById('tabSuperAdmin').classList.toggle('active', level === 'superadmin');
+      document.getElementById('tabStaff').classList.toggle('active', level === 'staff');
+      clearErrors();
+    }
+
+    function togglePw() {
+      pwVisible = !pwVisible;
+      const input = document.getElementById('pw');
+      const icon  = document.getElementById('eyeIcon');
+      input.type  = pwVisible ? 'text' : 'password';
+      icon.innerHTML = pwVisible
+        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+    }
+
+    function clearErrors() {
+      ['w-uid','w-pw'].forEach(id => document.getElementById(id).classList.remove('error'));
+      ['e-uid','e-pw'].forEach(id => document.getElementById(id).classList.remove('show'));
+      document.getElementById('alertBanner').classList.remove('show');
+    }
+
+    // OTP navigation
+    function otpNext(el, nextId) {
+      if (el.value.length === 1 && nextId) {
+        const next = document.getElementById(nextId);
+        if (next) next.focus();
+      }
+    }
+    function otpBack(e, el, prevId) {
+      if (e.key === 'Backspace' && el.value === '' && prevId) {
+        document.getElementById(prevId).focus();
+      }
+    }
+
+    let loginAttempts = 0;
+
+    function handleAdminLogin() {
+      clearErrors();
+      const uid = document.getElementById('uid').value.trim();
+      const pw  = document.getElementById('pw').value.trim();
+      let ok = true;
+
+      if (!uid) { document.getElementById('w-uid').classList.add('error'); document.getElementById('e-uid').classList.add('show'); ok = false; }
+      if (!pw)  { document.getElementById('w-pw').classList.add('error');  document.getElementById('e-pw').classList.add('show');  ok = false; }
+      if (!ok) return;
+
+      const btn = document.getElementById('submitBtn');
+      btn.classList.add('loading');
+
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        loginAttempts++;
+
+        // Wrong password simulation (first attempt with wrong credentials)
+        if (loginAttempts === 1 && pw !== 'admin123' && uid !== 'admin') {
+          document.getElementById('alertBanner').classList.add('show');
+          document.getElementById('alertMsg').textContent = `Invalid credentials. ${2 - loginAttempts} attempt remaining before lockout.`;
+          document.getElementById('w-pw').classList.add('error');
+          return;
+        }
+
+        // Go to 2FA step
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('twoFaStep').style.display = 'block';
+        setTimeout(() => document.getElementById('s2otp1').focus(), 100);
+      }, 1400);
+    }
+
+    function verifyOtp() {
+      const code = ['s2otp1','s2otp2','s2otp3','s2otp4','s2otp5','s2otp6']
+        .map(id => document.getElementById(id).value).join('');
+
+      if (code.length < 6) {
+        document.querySelectorAll('.otp-box').forEach(b => {
+          b.style.borderColor = 'var(--error)';
+          setTimeout(() => b.style.borderColor = '', 1200);
+        });
+        return;
+      }
+
+      const btn = document.getElementById('otpBtn');
+      btn.classList.add('loading');
+
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        document.getElementById('twoFaStep').style.display = 'none';
+        const roleLabel = adminLevel === 'superadmin' ? '⭐ Super Admin' : '👤 Staff Admin';
+        document.getElementById('successRole').textContent = roleLabel;
+        document.getElementById('successState').classList.add('show');
+        setTimeout(() => { window.location.href = 'Admindashboardpage.html'; }, 1200);
+      }, 1500);
+    }
+
+    function backToLogin() {
+      document.getElementById('twoFaStep').style.display = 'none';
+      document.getElementById('mainForm').style.display = 'block';
+      loginAttempts = 0;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('mainForm').style.display !== 'none') handleAdminLogin();
+        else if (document.getElementById('twoFaStep').style.display !== 'none') verifyOtp();
+      }
+    });
+  </script>
+</body>
+</html>

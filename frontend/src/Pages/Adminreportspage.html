@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Office — Statistics & Reports</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #c0392b;
+      --accent-dark: #991b1b;
+      --accent-light: #e07070;
+      --bg: #f7f1f1;
+      --sidebar-bg: #1a0505;
+      --sidebar-border: #2e0a0a;
+      --card: #ffffff;
+      --text: #1a0a0a;
+      --muted: #7c5555;
+      --input-bg: #fff8f8;
+      --input-border: #f5cece;
+      --border: #f0dada;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --blue: #1d4ed8;
+      --blue-bg: #eff6ff;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --gold: #f59e0b;
+      --purple: #7c3aed;
+      --purple-bg: #f5f3ff;
+    }
+
+    body { min-height: 100vh; background: var(--bg); font-family: 'DM Sans', sans-serif; display: flex; overflow-x: hidden; color: var(--text); }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: 240px; min-height: 100vh; background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; }
+    .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 10px; }
+    .sidebar-logo .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg,rgba(192,57,43,0.4),rgba(224,112,112,0.2)); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid rgba(192,57,43,0.35); box-shadow: 0 0 16px rgba(192,57,43,0.2); }
+    .sidebar-logo .logo-text h2 { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; color: #f5e8e8; }
+    .sidebar-logo .logo-text p  { font-size: 0.62rem; color: rgba(245,232,232,0.45); letter-spacing: 1.4px; text-transform: uppercase; margin-top: 1px; }
+    .sidebar-admin { padding: 14px 20px; border-bottom: 1px solid var(--sidebar-border); display: flex; align-items: center; gap: 10px; }
+    .admin-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#c0392b,#e07070); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; box-shadow: 0 0 10px rgba(192,57,43,0.4); }
+    .admin-info strong { display: block; font-size: 0.78rem; font-weight: 600; color: #f5e8e8; }
+    .admin-info span { font-size: 0.67rem; color: rgba(245,232,232,0.45); }
+    .admin-role-badge { margin-left: auto; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 4px; padding: 2px 7px; font-size: 0.6rem; font-weight: 700; color: var(--gold); letter-spacing: 0.8px; text-transform: uppercase; }
+    .sidebar-nav { flex: 1; padding: 14px 12px; overflow-y: auto; }
+    .nav-section-label { font-size: 0.6rem; font-weight: 700; color: rgba(245,232,232,0.3); text-transform: uppercase; letter-spacing: 1.2px; padding: 10px 8px 6px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; color: rgba(245,232,232,0.55); font-size: 0.82rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.18s; margin-bottom: 2px; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: #f5e8e8; }
+    .nav-item.active { background: rgba(192,57,43,0.2); color: #f5e8e8; border-left: 3px solid var(--accent); padding-left: 9px; }
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .nav-item .nav-badge { margin-left: auto; background: var(--accent); border-radius: 10px; padding: 1px 7px; font-size: 0.62rem; font-weight: 700; color: #fff; }
+    .sidebar-footer { padding: 14px 12px; border-top: 1px solid var(--sidebar-border); }
+    .logout-btn { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 9px; color: rgba(245,232,232,0.45); font-size: 0.82rem; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.18s; width: 100%; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+    .logout-btn:hover { color: var(--accent-light); background: rgba(192,57,43,0.1); }
+    .logout-btn svg { width: 16px; height: 16px; }
+
+    /* ── MAIN ── */
+    .main { margin-left: 240px; flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 62px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 8px rgba(140,30,30,0.06); }
+    .topbar-left h1 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--text); }
+    .topbar-left p  { font-size: 0.76rem; color: var(--muted); margin-top: 1px; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .tb-btn { width: 36px; height: 36px; border-radius: 9px; background: var(--input-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; position: relative; }
+    .tb-btn:hover { border-color: var(--accent-light); background: #fff0f0; }
+    .tb-btn svg { width: 16px; height: 16px; color: var(--muted); }
+    .tb-badge { position: absolute; top: -3px; right: -3px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.58rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    .tb-divider { width: 1px; height: 24px; background: var(--border); }
+    .tb-admin { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .tb-admin-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#c0392b,#e07070); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+    .tb-admin span { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+
+    .page-body { padding: 24px 28px 60px; flex: 1; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── PAGE HEADER ── */
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; animation: fadeUp 0.4s ease both; flex-wrap: wrap; gap: 14px; }
+    .page-header-left { display: flex; align-items: center; gap: 14px; }
+    .back-btn { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 9px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+    .back-btn:hover { border-color: var(--accent-light); color: var(--accent); background: #fff0f0; }
+    .back-btn svg { width: 14px; height: 14px; }
+    .page-title h1 { font-family: 'Playfair Display', serif; font-size: 1.45rem; font-weight: 700; color: var(--text); }
+    .page-title p  { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── PERIOD FILTER BAR ── */
+    .filter-bar {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 20px; margin-bottom: 22px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      animation: fadeUp 0.42s ease both 0.05s;
+      box-shadow: 0 2px 10px rgba(140,30,30,0.05);
+    }
+    .filter-bar-label { font-size: 0.76rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
+    .period-tabs { display: flex; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; padding: 3px; gap: 2px; }
+    .period-tab { padding: 6px 16px; border-radius: 7px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .period-tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(192,57,43,0.3); }
+    .period-tab:hover:not(.active) { color: var(--accent); }
+
+    .type-select { padding: 8px 14px; border: 1.5px solid var(--input-border); border-radius: 9px; background: var(--input-bg); font-size: 0.82rem; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; cursor: pointer; min-width: 150px; }
+    .type-select:focus { border-color: var(--accent-light); }
+
+    .date-range { display: flex; align-items: center; gap: 8px; }
+    .date-input { padding: 8px 12px; border: 1.5px solid var(--input-border); border-radius: 9px; background: var(--input-bg); font-size: 0.8rem; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; }
+    .date-input:focus { border-color: var(--accent-light); }
+    .date-sep { font-size: 0.76rem; color: var(--muted); }
+
+    .filter-spacer { flex: 1; }
+
+    .export-group { display: flex; gap: 8px; }
+    .btn-export-pdf {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: 9px; border: none;
+      background: linear-gradient(135deg, #c0392b, #991b1b);
+      color: #fff; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s; box-shadow: 0 3px 10px rgba(192,57,43,0.25);
+    }
+    .btn-export-pdf:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(192,57,43,0.35); }
+    .btn-export-pdf svg { width: 14px; height: 14px; }
+    .btn-export-csv {
+      display: flex; align-items: center; gap: 7px;
+      padding: 9px 16px; border-radius: 9px;
+      border: 1.5px solid var(--input-border); background: var(--input-bg);
+      color: var(--muted); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+    }
+    .btn-export-csv:hover { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+    .btn-export-csv svg { width: 14px; height: 14px; }
+
+    /* ── KPI ROW ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; animation: fadeUp 0.44s ease both 0.08s; }
+    .kpi-card { background: var(--card); border-radius: 14px; padding: 18px 18px 16px; border: 1px solid var(--border); box-shadow: 0 2px 10px rgba(140,30,30,0.06); position: relative; overflow: hidden; transition: transform 0.18s, box-shadow 0.18s; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(140,30,30,0.1); }
+    .kpi-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 14px 14px; }
+    .kpi-card.c-red::after    { background: linear-gradient(90deg,#c0392b,#e07070); }
+    .kpi-card.c-green::after  { background: linear-gradient(90deg,#16a34a,#22c55e); }
+    .kpi-card.c-blue::after   { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
+    .kpi-card.c-amber::after  { background: linear-gradient(90deg,#d97706,#f59e0b); }
+    .kpi-card.c-purple::after { background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .kpi-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .ki-red    { background: #fff0f0; }
+    .ki-green  { background: var(--green-bg); }
+    .ki-blue   { background: var(--blue-bg); }
+    .ki-amber  { background: var(--amber-bg); }
+    .ki-purple { background: var(--purple-bg); }
+    .kpi-trend { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .kt-up   { background: var(--green-bg); color: var(--green); }
+    .kt-down { background: #fff0f0; color: var(--accent); }
+    .kpi-num   { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; color: var(--text); line-height: 1; }
+    .kpi-label { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+
+    /* ── MAIN GRID ── */
+    .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 18px; margin-bottom: 18px; }
+    .full-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 2px 12px rgba(140,30,30,0.06); overflow: hidden; animation: fadeUp 0.5s ease both 0.12s; }
+    .card-header { padding: 16px 22px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-header-left { display: flex; align-items: center; gap: 10px; }
+    .card-h-icon { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#e07070,#c0392b); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(192,57,43,0.25); flex-shrink: 0; }
+    .card-h-icon.green  { background: linear-gradient(135deg,#4ade80,#16a34a); }
+    .card-h-icon.blue   { background: linear-gradient(135deg,#60a5fa,#1d4ed8); }
+    .card-h-icon.amber  { background: linear-gradient(135deg,#fbbf24,#d97706); }
+    .card-h-icon.purple { background: linear-gradient(135deg,#c084fc,#7c3aed); }
+    .card-header h3 { font-family: 'Playfair Display', serif; font-size: 0.97rem; font-weight: 700; color: var(--text); }
+    .card-header p  { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .card-body { padding: 20px 22px; }
+    .period-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 20px; padding: 3px 12px; }
+
+    /* ── BAR CHART ── */
+    .bar-chart-wrap { position: relative; }
+    .bar-chart { height: 180px; display: flex; align-items: flex-end; gap: 4px; padding: 0 2px 0; position: relative; overflow: visible; }
+    .bar-chart::before {
+      content: '';
+      position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+      background: repeating-linear-gradient(to bottom, transparent, transparent calc(25% - 1px), #f5e8e8 calc(25% - 1px), #f5e8e8 25%);
+      pointer-events: none; z-index: 0;
+    }
+    .bc-group { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+    .bc-bars  { width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 1px; height: 160px; position: relative; z-index: 1; }
+    .bc-bar {
+      flex: 1; border-radius: 4px 4px 0 0; position: relative;
+      cursor: pointer; transition: height 0.7s cubic-bezier(.22,.68,0,1.1), filter 0.15s;
+      min-width: 4px; max-width: 22px;
+    }
+    .bc-bar:hover { filter: brightness(1.15); }
+    .bc-bar.parcels    { background: linear-gradient(180deg, #e07070, #c0392b); }
+    .bc-bar.letters    { background: linear-gradient(180deg, #60a5fa, #1d4ed8); }
+    .bc-bar.express    { background: linear-gradient(180deg, #fbbf24, #d97706); }
+    .bc-bar.registered { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+    .bc-tooltip {
+      position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+      background: var(--text); color: #fff; font-size: 0.62rem; font-weight: 600;
+      padding: 3px 7px; border-radius: 5px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s;
+      z-index: 20;
+    }
+    .bc-bar:hover .bc-tooltip { opacity: 1; }
+    .bc-label { font-size: 0.62rem; color: var(--muted); margin-top: 5px; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+    /* Legend */
+    .chart-legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.73rem; color: var(--muted); }
+    .legend-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .ld-red      { background: #c0392b; }
+    .ld-blue     { background: #1d4ed8; }
+    .ld-amber    { background: #d97706; }
+    .ld-purple   { background: #7c3aed; }
+
+    /* ── REVENUE CHART ── */
+    .rev-chart { height: 160px; position: relative; }
+    .rev-area { display: none; }
+    .rev-line-svg { width: 100%; height: 160px; display: block; }
+
+    /* ── TYPE BREAKDOWN ── */
+    .type-rows { display: flex; flex-direction: column; gap: 12px; }
+    .type-row { display: flex; flex-direction: column; gap: 5px; }
+    .type-row-head { display: flex; align-items: center; justify-content: space-between; }
+    .type-name { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    .type-dot  { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .type-count { font-size: 0.78rem; color: var(--muted); }
+    .type-pct   { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+    .type-bar-track { height: 7px; background: var(--input-bg); border-radius: 10px; overflow: hidden; }
+    .type-bar-fill  { height: 100%; border-radius: 10px; transition: width 1s cubic-bezier(.22,.68,0,1.1); }
+
+    /* ── REVENUE TABLE ── */
+    .rev-table { width: 100%; border-collapse: collapse; }
+    .rev-table th { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1.5px solid var(--border); background: #fdf8f8; }
+    .rev-table td { padding: 11px 12px; font-size: 0.82rem; border-bottom: 1px solid #fdf5f5; vertical-align: middle; }
+    .rev-table tr:last-child td { border-bottom: none; }
+    .rev-table tr:hover td { background: #fffafa; }
+    .rev-num { font-weight: 700; color: var(--text); font-family: 'Playfair Display', serif; }
+    .rev-num.positive { color: var(--green); }
+    .badge-small { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 0.67rem; font-weight: 700; }
+    .bs-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .bs-amber  { background: var(--amber-bg); color: var(--amber); border: 1px solid #fde68a; }
+    .bs-red    { background: #fff0f0; color: var(--accent); border: 1px solid var(--input-border); }
+    .bs-blue   { background: var(--blue-bg); color: var(--blue); border: 1px solid #bfdbfe; }
+    .bs-purple { background: var(--purple-bg); color: var(--purple); border: 1px solid #ddd6fe; }
+
+    /* ── SUMMARY STATS CARD ── */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .sum-cell { background: var(--input-bg); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--input-border); }
+    .sum-cell-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; }
+    .sum-cell-val   { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--text); margin-top: 4px; }
+    .sum-cell-sub   { font-size: 0.67rem; color: var(--muted); margin-top: 1px; }
+
+    .top-routes { display: flex; flex-direction: column; gap: 8px; }
+    .route-row  { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 9px; }
+    .route-rank { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,#e07070,#c0392b); color: #fff; font-size: 0.67rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .route-info { flex: 1; }
+    .route-info .r-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+    .route-info .r-sub  { font-size: 0.67rem; color: var(--muted); margin-top: 1px; }
+    .route-count { font-size: 0.78rem; font-weight: 700; color: var(--accent); font-family: 'Playfair Display', serif; }
+
+    /* ── EXPORT MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,5,5,0.55); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #fff; border-radius: 18px; width: 100%; max-width: 500px; box-shadow: 0 24px 60px rgba(26,5,5,0.25); animation: modalIn 0.3s cubic-bezier(.22,.68,0,1.2) both; overflow: hidden; }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.93) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+    .modal-icon { width: 40px; height: 40px; border-radius: 11px; background: #fff0f0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .modal-header p  { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+    .modal-close { margin-left: auto; width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border); background: var(--input-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+    .modal-close:hover { background: #fff0f0; border-color: var(--accent-light); }
+    .modal-close svg { width: 14px; height: 14px; color: var(--muted); }
+    .modal-body  { padding: 20px 24px; }
+    .modal-footer { padding: 0 24px 20px; display: flex; gap: 10px; }
+
+    .export-option { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1.5px solid var(--input-border); border-radius: 12px; cursor: pointer; transition: all 0.15s; margin-bottom: 10px; }
+    .export-option:hover { border-color: var(--accent-light); background: #fff8f8; }
+    .export-option input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+    .export-option-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .export-option-text strong { display: block; font-size: 0.84rem; font-weight: 700; color: var(--text); }
+    .export-option-text span   { font-size: 0.72rem; color: var(--muted); }
+
+    .modal-label { font-size: 0.76rem; font-weight: 700; color: var(--text); margin-bottom: 8px; display: block; }
+    .modal-select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--input-border); border-radius: 9px; background: var(--input-bg); font-size: 0.83rem; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; margin-bottom: 16px; }
+    .modal-btn-cancel { flex: 1; padding: 10px; border-radius: 9px; border: 1.5px solid var(--border); background: var(--input-bg); font-size: 0.83rem; font-weight: 600; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .modal-btn-cancel:hover { border-color: var(--accent-light); color: var(--accent); }
+    .modal-btn-export { flex: 2; padding: 10px; border-radius: 9px; border: none; background: linear-gradient(135deg,#c0392b,#991b1b); color: #fff; font-size: 0.83rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .modal-btn-export:hover { box-shadow: 0 4px 14px rgba(192,57,43,0.35); transform: translateY(-1px); }
+    .modal-btn-export svg { width: 14px; height: 14px; }
+
+    /* ── PROGRESS MODAL (export in progress) ── */
+    .progress-wrap { text-align: center; padding: 10px 0 4px; }
+    .progress-bar-track { height: 8px; background: var(--input-bg); border-radius: 10px; overflow: hidden; margin: 16px 0 8px; }
+    .progress-bar-fill  { height: 100%; background: linear-gradient(90deg,#c0392b,#e07070); border-radius: 10px; width: 0%; transition: width 0.3s ease; }
+    .progress-text { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 28px; right: 28px; background: var(--text); color: #fff; padding: 12px 20px; border-radius: 11px; font-size: 0.83rem; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.18); display: flex; align-items: center; gap: 10px; z-index: 300; opacity: 0; transform: translateY(12px); transition: all 0.3s; pointer-events: none; }
+    .toast.show  { opacity: 1; transform: translateY(0); }
+    .toast.green { background: #16a34a; }
+    .toast svg   { width: 16px; height: 16px; }
+
+    @media(max-width:1100px) {
+      .kpi-row   { grid-template-columns: repeat(3,1fr); }
+      .main-grid { grid-template-columns: 1fr; }
+      .full-grid { grid-template-columns: 1fr; }
+    }
+    @media(max-width:760px) {
+      .main { margin-left: 0; }
+      .sidebar { display: none; }
+      .kpi-row { grid-template-columns: repeat(2,1fr); }
+      .filter-bar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📮</div>
+    <div class="logo-text"><h2>Post Office</h2><p>Admin Panel</p></div>
+  </div>
+  <div class="sidebar-admin">
+    <div class="admin-avatar">👨‍💼</div>
+    <div class="admin-info"><strong>Super Admin</strong><span>Administrator</span></div>
+    <span class="admin-role-badge">Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item" href="Admindashboardpage.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <div class="nav-section-label" style="margin-top:8px;">Management</div>
+    <a class="nav-item" href="Userapprovalpage.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+      User Approval
+      <span class="nav-badge">5</span>
+    </a>
+    <a class="nav-item active" href="Adminreportspage.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Statistics & Reports
+    </a>
+    <div class="nav-section-label" style="margin-top:8px;">System</div>
+    <a class="nav-item" href="AdminSettingPage.html">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Settings
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="AdminLoginPage.html" class="logout-btn">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Sign Out
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1>Statistics & Reports</h1>
+      <p>FR-11 · FR-12 · FR-13 — Parcel stats, revenue analytics, PDF export</p>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="tb-badge">5</div>
+      </button>
+      <div class="tb-divider"></div>
+      <div class="tb-admin">
+        <div class="tb-admin-avatar">👨‍💼</div>
+        <span>Super Admin</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <a href="Admindashboardpage.html" class="back-btn">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Back to Dashboard
+        </a>
+        <div class="page-title">
+          <h1>Statistics & Reports</h1>
+          <p>Wednesday, 11 March 2026</p>
+        </div>
+      </div>
+      <div class="export-group">
+        <button class="btn-export-csv" onclick="openExport('csv')">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Export CSV
+        </button>
+        <button class="btn-export-pdf" onclick="openExport('pdf')">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- FR-11/FR-12: Filter Bar -->
+    <div class="filter-bar">
+      <span class="filter-bar-label">Period</span>
+      <div class="period-tabs">
+        <button class="period-tab" onclick="setPeriod('day',this)">Day</button>
+        <button class="period-tab active" onclick="setPeriod('week',this)">Week</button>
+        <button class="period-tab" onclick="setPeriod('month',this)">Month</button>
+        <button class="period-tab" onclick="setPeriod('year',this)">Year</button>
+      </div>
+
+      <span class="filter-bar-label" style="margin-left:8px;">Type</span>
+      <select class="type-select" id="typeFilter" onchange="applyFilters()">
+        <option value="all">All Types</option>
+        <option value="parcels">📦 Parcels</option>
+        <option value="letters">✉️ Letters</option>
+        <option value="express">⚡ Express</option>
+        <option value="registered">📋 Registered</option>
+      </select>
+
+      <div class="date-range">
+        <input type="date" class="date-input" id="dateFrom" value="2026-03-04">
+        <span class="date-sep">–</span>
+        <input type="date" class="date-input" id="dateTo" value="2026-03-11">
+      </div>
+
+      <div class="filter-spacer"></div>
+      <span class="period-label" id="periodLabel">This Week</span>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi-card c-red">
+        <div class="kpi-top">
+          <div class="kpi-icon ki-red">📦</div>
+          <span class="kpi-trend kt-up" id="trendTotal">↑ 12%</span>
+        </div>
+        <div class="kpi-num" id="kpiTotal">0</div>
+        <div class="kpi-label">Total Parcels</div>
+      </div>
+      <div class="kpi-card c-green">
+        <div class="kpi-top">
+          <div class="kpi-icon ki-green">✅</div>
+          <span class="kpi-trend kt-up" id="trendDelivered">↑ 8%</span>
+        </div>
+        <div class="kpi-num" id="kpiDelivered">0</div>
+        <div class="kpi-label">Delivered</div>
+      </div>
+      <div class="kpi-card c-blue">
+        <div class="kpi-top">
+          <div class="kpi-icon ki-blue">🚚</div>
+          <span class="kpi-trend kt-up">↑ 5%</span>
+        </div>
+        <div class="kpi-num" id="kpiTransit">0</div>
+        <div class="kpi-label">In Transit</div>
+      </div>
+      <div class="kpi-card c-amber">
+        <div class="kpi-top">
+          <div class="kpi-icon ki-amber">💰</div>
+          <span class="kpi-trend kt-up" id="trendRevenue">↑ 18%</span>
+        </div>
+        <div class="kpi-num" id="kpiRevenue">0</div>
+        <div class="kpi-label">Revenue (฿)</div>
+      </div>
+      <div class="kpi-card c-purple">
+        <div class="kpi-top">
+          <div class="kpi-icon ki-purple">📈</div>
+          <span class="kpi-trend kt-up">↑ 3%</span>
+        </div>
+        <div class="kpi-num" id="kpiAvg">0</div>
+        <div class="kpi-label">Avg. Fee (฿)</div>
+      </div>
+    </div>
+
+    <!-- FR-11: Parcel Volume Chart + Type Breakdown -->
+    <div class="main-grid">
+
+      <!-- Bar Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon">📊</div>
+            <div>
+              <h3>Parcel Volume by Type</h3>
+              <p id="chartSubLabel">Mon 4 Mar — Sun 10 Mar 2026</p>
+            </div>
+          </div>
+          <span class="period-label" id="chartPeriodLabel">Week</span>
+        </div>
+        <div class="card-body">
+          <div class="bar-chart" id="barChart"></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot ld-red"></div> Parcels</div>
+            <div class="legend-item"><div class="legend-dot ld-blue"></div> Letters</div>
+            <div class="legend-item"><div class="legend-dot ld-amber"></div> Express</div>
+            <div class="legend-item"><div class="legend-dot ld-purple"></div> Registered</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type Breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon amber">🥧</div>
+            <div><h3>Type Breakdown</h3><p>Share of total volume</p></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="type-rows" id="typeRows"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FR-12: Revenue Report + Summary -->
+    <div class="main-grid">
+
+      <!-- Revenue Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon green">💰</div>
+            <div><h3>Revenue Report</h3><p id="revSubLabel">Daily revenue — this week</p></div>
+          </div>
+          <span class="period-label" id="revPeriodLabel">Week</span>
+        </div>
+        <div class="card-body">
+          <div class="rev-chart">
+            <svg class="rev-line-svg" id="revSvg"></svg>
+          </div>
+          <div style="display:flex;gap:0;margin-top:6px;" id="revLabels"></div>
+        </div>
+      </div>
+
+      <!-- Revenue by Type Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon purple">📋</div>
+            <div><h3>Revenue by Type</h3><p>Breakdown this period</p></div>
+          </div>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="rev-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Parcels</th>
+                <th>Revenue</th>
+                <th>Avg. Fee</th>
+              </tr>
+            </thead>
+            <tbody id="revTypeTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary + Top Routes -->
+    <div class="full-grid">
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon blue">📌</div>
+            <div><h3>Period Summary</h3><p>Key metrics at a glance</p></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="summary-grid">
+            <div class="sum-cell">
+              <div class="sum-cell-label">Delivery Rate</div>
+              <div class="sum-cell-val" id="sumRate">94%</div>
+              <div class="sum-cell-sub">of all shipments delivered</div>
+            </div>
+            <div class="sum-cell">
+              <div class="sum-cell-label">Return Rate</div>
+              <div class="sum-cell-val" id="sumReturn">2.4%</div>
+              <div class="sum-cell-sub">returned / failed</div>
+            </div>
+            <div class="sum-cell">
+              <div class="sum-cell-label">Peak Day</div>
+              <div class="sum-cell-val" id="sumPeak">Thursday</div>
+              <div class="sum-cell-sub">highest volume day</div>
+            </div>
+            <div class="sum-cell">
+              <div class="sum-cell-label">Total Collected</div>
+              <div class="sum-cell-val" id="sumCollected">฿18,420</div>
+              <div class="sum-cell-sub">all payment methods</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left">
+            <div class="card-h-icon">🗺️</div>
+            <div><h3>Top Routes</h3><p>Most active origin → destination</p></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="top-routes">
+            <div class="route-row">
+              <div class="route-rank">1</div>
+              <div class="route-info"><div class="r-name">Bangkok → Nonthaburi</div><div class="r-sub">Metropolitan corridor</div></div>
+              <div class="route-count">42</div>
+            </div>
+            <div class="route-row">
+              <div class="route-rank">2</div>
+              <div class="route-info"><div class="r-name">Bangkok → Chiang Mai</div><div class="r-sub">North route</div></div>
+              <div class="route-count">31</div>
+            </div>
+            <div class="route-row">
+              <div class="route-rank">3</div>
+              <div class="route-info"><div class="r-name">Bangkok → Phuket</div><div class="r-sub">South route</div></div>
+              <div class="route-count">28</div>
+            </div>
+            <div class="route-row">
+              <div class="route-rank">4</div>
+              <div class="route-info"><div class="r-name">Bangkok → Khon Kaen</div><div class="r-sub">Northeast route</div></div>
+              <div class="route-count">19</div>
+            </div>
+            <div class="route-row">
+              <div class="route-rank">5</div>
+              <div class="route-info"><div class="r-name">Bangkok → Hat Yai</div><div class="r-sub">Deep south route</div></div>
+              <div class="route-count">14</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /page-body -->
+</div><!-- /main -->
+
+<!-- ═══════════ EXPORT MODAL (FR-13) ═══════════ -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">📄</div>
+      <div>
+        <h3 id="exportModalTitle">Export PDF Report</h3>
+        <p>Choose sections to include in the report</p>
+      </div>
+      <button class="modal-close" onclick="closeExportModal()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <label class="modal-label">Include sections</label>
+
+      <label class="export-option">
+        <input type="checkbox" checked id="chkStats">
+        <div class="export-option-icon ki-red" style="background:#fff0f0;">📊</div>
+        <div class="export-option-text">
+          <strong>Parcel Statistics</strong>
+          <span>Volume by type, period totals, delivery rates</span>
+        </div>
+      </label>
+
+      <label class="export-option">
+        <input type="checkbox" checked id="chkRevenue">
+        <div class="export-option-icon" style="background:var(--green-bg);">💰</div>
+        <div class="export-option-text">
+          <strong>Revenue Report</strong>
+          <span>Daily revenue, totals by type, average fees</span>
+        </div>
+      </label>
+
+      <label class="export-option">
+        <input type="checkbox" id="chkRoutes">
+        <div class="export-option-icon" style="background:var(--blue-bg);">🗺️</div>
+        <div class="export-option-text">
+          <strong>Top Routes</strong>
+          <span>Most active origin-destination pairs</span>
+        </div>
+      </label>
+
+      <label class="export-option">
+        <input type="checkbox" id="chkSummary">
+        <div class="export-option-icon" style="background:var(--amber-bg);">📌</div>
+        <div class="export-option-text">
+          <strong>Period Summary</strong>
+          <span>Delivery rate, return rate, peak day</span>
+        </div>
+      </label>
+
+      <label class="modal-label" style="margin-top:4px;">Report period</label>
+      <select class="modal-select" id="exportPeriod">
+        <option>This Week (4–10 Mar 2026)</option>
+        <option>This Month (Mar 2026)</option>
+        <option>Last Month (Feb 2026)</option>
+        <option>Custom date range</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeExportModal()">Cancel</button>
+      <button class="modal-btn-export" onclick="runExport()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span id="exportBtnLabel">Generate PDF</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="progressModal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-body" style="padding:28px 28px 24px;">
+      <div class="progress-wrap">
+        <div style="font-size:2rem;margin-bottom:12px;">📄</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px;" id="progressTitle">Generating PDF…</div>
+        <div class="progress-text" id="progressStep">Compiling statistics…</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressPct">0%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+  <span id="toastMsg">Report exported successfully</span>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   DATA SETS — keyed by period
+══════════════════════════════════════════ */
+const DATA = {
+  day: {
+    labels: ['8am','10am','12pm','2pm','4pm','6pm'],
+    parcels:     [4,  6,  9,  7,  5,  3],
+    letters:     [2,  3,  5,  4,  3,  1],
+    express:     [1,  2,  3,  2,  1,  1],
+    registered:  [1,  1,  2,  1,  1,  0],
+    revenue:     [620,840,1280,960,680,420],
+    total:47, delivered:41, transit:4, revenue_total:4800, avg:102,
+    periodLabel:'Today', chartSub:'Hourly — 11 Mar 2026',
+    peakDay:'12:00–14:00', rate:'87%', ret:'3.2%', collected:'฿4,800'
+  },
+  week: {
+    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    parcels:     [18, 24, 22, 30, 20, 14,  8],
+    letters:     [10, 13, 11, 15, 12,  8,  5],
+    express:     [6,  9,  8, 11,  7,  5,  3],
+    registered:  [4,  5,  4,  6,  5,  3,  2],
+    revenue:     [2200,3100,2850,3800,2750,1900,1020],
+    total:247, delivered:232, transit:11, revenue_total:18420, avg:74,
+    periodLabel:'This Week', chartSub:'Mon 4 Mar — Sun 10 Mar 2026',
+    peakDay:'Thursday', rate:'94%', ret:'2.4%', collected:'฿18,420'
+  },
+  month: {
+    labels: ['W1','W2','W3','W4'],
+    parcels:     [82, 95, 88, 71],
+    letters:     [45, 52, 48, 39],
+    express:     [28, 33, 30, 24],
+    registered:  [18, 21, 19, 15],
+    revenue:     [9800,11400,10600,8500],
+    total:990, delivered:941, transit:38, revenue_total:40300, avg:40,
+    periodLabel:'This Month', chartSub:'March 2026',
+    peakDay:'Week 2', rate:'95%', ret:'1.8%', collected:'฿40,300'
+  },
+  year: {
+    labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    parcels:     [280,260,310, 90,  0,  0,  0,  0,  0,  0,  0,  0],
+    letters:     [155,143,171, 50,  0,  0,  0,  0,  0,  0,  0,  0],
+    express:     [95, 88,105, 30,  0,  0,  0,  0,  0,  0,  0,  0],
+    registered:  [62, 57, 68, 20,  0,  0,  0,  0,  0,  0,  0,  0],
+    revenue:     [38000,35400,42100,12000,0,0,0,0,0,0,0,0],
+    total:2680, delivered:2540, transit:98, revenue_total:127500, avg:47,
+    periodLabel:'This Year', chartSub:'January — December 2026',
+    peakDay:'March', rate:'95%', ret:'1.6%', collected:'฿127,500'
+  }
+};
+
+const TYPE_META = [
+  { key:'parcels',    label:'📦 Parcels',    color:'#c0392b', cls:'ld-red'    },
+  { key:'express',    label:'⚡ Express',    color:'#d97706', cls:'ld-amber'  },
+  { key:'letters',    label:'✉️ Letters',    color:'#1d4ed8', cls:'ld-blue'   },
+  { key:'registered', label:'📋 Registered', color:'#7c3aed', cls:'ld-purple' },
+];
+
+const AVG_FEE = { parcels:84, letters:18, express:185, registered:110 };
+
+let currentPeriod = 'week';
+let currentType   = 'all';
+
+/* ══════ HELPERS ══════ */
+function animateCount(id, target, prefix='', suffix='', decimals=0) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const dur = 900, start = Date.now();
+  const tick = () => {
+    const p = Math.min((Date.now()-start)/dur, 1);
+    const e = 1 - Math.pow(1-p, 3);
+    const v = e * target;
+    el.textContent = prefix + (decimals ? v.toFixed(decimals) : Math.round(v).toLocaleString()) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/* ══════ FILTERS ══════ */
+function setPeriod(p, btn) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  currentType = document.getElementById('typeFilter').value;
+  renderAll();
+}
+
+/* ══════ RENDER ALL ══════ */
+function renderAll() {
+  const d = DATA[currentPeriod];
+  document.getElementById('periodLabel').textContent    = d.periodLabel;
+  document.getElementById('chartPeriodLabel').textContent = d.periodLabel;
+  document.getElementById('revPeriodLabel').textContent   = d.periodLabel;
+  document.getElementById('chartSubLabel').textContent  = d.chartSub;
+  document.getElementById('revSubLabel').textContent    = 'Daily revenue — ' + d.periodLabel.toLowerCase();
+
+  // KPIs
+  animateCount('kpiTotal',     d.total);
+  animateCount('kpiDelivered', d.delivered);
+  animateCount('kpiTransit',   d.transit);
+  animateCount('kpiRevenue',   d.revenue_total, '฿', '', 0);
+  animateCount('kpiAvg',       d.avg, '฿');
+
+  // Summary
+  document.getElementById('sumRate').textContent      = d.rate;
+  document.getElementById('sumReturn').textContent    = d.ret;
+  document.getElementById('sumPeak').textContent      = d.peakDay;
+  document.getElementById('sumCollected').textContent = d.collected;
+
+  renderBarChart(d);
+  renderTypeBreakdown(d);
+  renderRevenueChart(d);
+  renderRevTypeTable(d);
+}
+
+/* ══════ BAR CHART ══════ */
+function renderBarChart(d) {
+  const container = document.getElementById('barChart');
+  container.innerHTML = '';
+
+  const CHART_H = 160;
+  const keys   = currentType === 'all' ? ['parcels','letters','express','registered'] : [currentType];
+  const totals = d.labels.map((_,i) => keys.reduce((s,k) => s + d[k][i], 0));
+  const maxV   = Math.max(...totals, 1);
+
+  d.labels.forEach((lbl, i) => {
+    const group = document.createElement('div');
+    group.className = 'bc-group';
+    group.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;min-width:0;';
+
+    const barsDiv = document.createElement('div');
+    barsDiv.className = 'bc-bars';
+
+    keys.forEach(k => {
+      const v    = d[k][i];
+      const px   = Math.round((v / maxV) * CHART_H);
+      const bar  = document.createElement('div');
+      bar.className = `bc-bar ${k}`;
+      bar.style.height = '0px';
+      bar.innerHTML = `<div class="bc-tooltip">${v} ${k}</div>`;
+      barsDiv.appendChild(bar);
+      setTimeout(() => { bar.style.height = px + 'px'; }, 200 + i * 55);
+    });
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'bc-label';
+    labelEl.textContent = lbl;
+
+    group.appendChild(barsDiv);
+    group.appendChild(labelEl);
+    container.appendChild(group);
+  });
+}
+
+/* ══════ TYPE BREAKDOWN ══════ */
+function renderTypeBreakdown(d) {
+  const relevant = currentType === 'all' ? TYPE_META : TYPE_META.filter(t => t.key === currentType);
+  const totals   = relevant.map(t => d[t.key].reduce((s,v) => s+v, 0));
+  const grand    = totals.reduce((s,v) => s+v, 0) || 1;
+
+  document.getElementById('typeRows').innerHTML = relevant.map((t, i) => {
+    const cnt = totals[i];
+    const pct = Math.round((cnt / grand) * 100);
+    return `
+      <div class="type-row">
+        <div class="type-row-head">
+          <div class="type-name">
+            <div class="type-dot" style="background:${t.color};"></div>
+            ${t.label}
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <span class="type-count">${cnt} parcels</span>
+            <span class="type-pct">${pct}%</span>
+          </div>
+        </div>
+        <div class="type-bar-track">
+          <div class="type-bar-fill" style="width:0%;background:${t.color};" data-w="${pct}%"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  setTimeout(() => {
+    document.querySelectorAll('.type-bar-fill').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 150);
+}
+
+/* ══════ REVENUE CHART (SVG line) ══════ */
+function renderRevenueChart(d) {
+  const svg   = document.getElementById('revSvg');
+  const labEl = document.getElementById('revLabels');
+  const vals  = d.revenue;
+  const maxR  = Math.max(...vals, 1);
+  const W = 600, H = 150, padX = 10, padY = 16;
+  const n = vals.length;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  const pts = vals.map((v, i) => {
+    const x = padX + (i / Math.max(n - 1, 1)) * (W - padX * 2);
+    const y = padY + (1 - v / maxR) * (H - padY * 2);
+    return [Math.round(x), Math.round(y)];
+  });
+
+  const polyline = pts.map(p => p.join(',')).join(' ');
+  const area = `${pts[0][0]},${H} ` + pts.map(p => p.join(',')).join(' ') + ` ${pts[pts.length-1][0]},${H}`;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#c0392b" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#c0392b" stop-opacity="0.01"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${area}" fill="url(#revGrad)"/>
+    <polyline points="${polyline}" fill="none" stroke="#c0392b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.map((p,i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#c0392b" stroke="white" stroke-width="2"><title>฿${vals[i].toLocaleString()}</title></circle>`).join('')}
+  `;
+
+  labEl.innerHTML = d.labels.map(l =>
+    `<div style="flex:1;text-align:center;font-size:.62rem;color:var(--muted);font-family:'DM Sans',sans-serif;">${l}</div>`
+  ).join('');
+}
+
+/* ══════ REVENUE TYPE TABLE ══════ */
+function renderRevTypeTable(d) {
+  const relevant = currentType === 'all' ? TYPE_META : TYPE_META.filter(t => t.key === currentType);
+  const badgeCls = { parcels:'bs-red', letters:'bs-blue', express:'bs-amber', registered:'bs-purple' };
+
+  document.getElementById('revTypeTable').innerHTML = relevant.map(t => {
+    const cnt = d[t.key].reduce((s,v) => s+v, 0);
+    const rev = cnt * AVG_FEE[t.key];
+    return `
+      <tr>
+        <td><span class="badge-small ${badgeCls[t.key]}">${t.label}</span></td>
+        <td>${cnt}</td>
+        <td class="rev-num positive">฿${rev.toLocaleString()}</td>
+        <td class="rev-num">฿${AVG_FEE[t.key]}</td>
+      </tr>`;
+  }).join('');
+}
+
+
+
+/* ══════ EXPORT MODAL (FR-13) ══════ */
+let exportType = 'pdf';
+
+function openExport(type) {
+  exportType = type;
+  document.getElementById('exportModalTitle').textContent = type === 'pdf' ? 'Export PDF Report' : 'Export CSV Data';
+  document.getElementById('exportBtnLabel').textContent   = type === 'pdf' ? 'Generate PDF' : 'Download CSV';
+  document.getElementById('exportModal').classList.add('show');
+}
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('show');
+}
+function showProgress(title) {
+  document.getElementById('progressTitle').textContent = title;
+  document.getElementById('progressStep').textContent  = 'Starting...';
+  document.getElementById('progressBar').style.width   = '0%';
+  document.getElementById('progressPct').textContent   = '0%';
+  document.getElementById('progressModal').classList.add('show');
+}
+function setProgress(pct, label) {
+  document.getElementById('progressBar').style.width  = pct + '%';
+  document.getElementById('progressPct').textContent  = pct + '%';
+  document.getElementById('progressStep').textContent = label;
+}
+function hideProgress() {
+  document.getElementById('progressModal').classList.remove('show');
+}
+
+function exportCSV() {
+  const d = DATA[currentPeriod];
+  const rows = [['Period','Label','Parcels','Letters','Express','Registered','Total','Revenue (THB)']];
+  d.labels.forEach((lbl,i) => {
+    const total = d.parcels[i]+d.letters[i]+d.express[i]+d.registered[i];
+    rows.push([d.periodLabel,lbl,d.parcels[i],d.letters[i],d.express[i],d.registered[i],total,d.revenue[i]]);
+  });
+  rows.push([],[' SUMMARY '],[' Total Parcels',d.total],['Delivered',d.delivered],['In Transit',d.transit],
+    ['Total Revenue (THB)',d.revenue_total],['Avg Fee (THB)',d.avg],['Delivery Rate',d.rate],['Return Rate',d.ret],['Peak Day',d.peakDay]);
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'PostOffice_Report_'+d.periodLabel.replace(/\s+/g,'_')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const d = DATA[currentPeriod];
+  const incStats   = document.getElementById('chkStats').checked;
+  const incRevenue = document.getElementById('chkRevenue').checked;
+  const incRoutes  = document.getElementById('chkRoutes').checked;
+  const incSummary = document.getElementById('chkSummary').checked;
+  const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const PW=210,PH=297,ML=18,MR=18;
+  let y=18;
+  const accent=[192,57,43],dark=[26,10,10],muted=[120,80,80],light=[247,241,241],grn=[22,163,74],blu=[29,78,216],pur=[124,58,237];
+  const T=(s,x,yy,sz,col=dark,st='normal',al='left')=>{pdf.setFontSize(sz);pdf.setTextColor(...col);pdf.setFont('helvetica',st);pdf.text(String(s),x,yy,{align:al});};
+  const R=(x,yy,w,h,col)=>{pdf.setFillColor(...col);pdf.rect(x,yy,w,h,'F');};
+  const L=(x1,y1,x2,y2,col=[220,200,200],lw=0.3)=>{pdf.setDrawColor(...col);pdf.setLineWidth(lw);pdf.line(x1,y1,x2,y2);};
+  const NP=()=>{pdf.addPage();y=18;R(0,0,PW,10,accent);T('Thailand Post Office - Statistics & Reports',PW/2,6.5,7,[255,255,255],'bold','center');y=18;};
+  const CK=(n)=>{if(y+n>PH-18)NP();};
+
+  /* COVER */
+  R(0,0,PW,58,accent); R(0,58,PW,3,[150,35,25]);
+  T('POST OFFICE',PW/2,28,20,[255,255,255],'bold','center');
+  T('Statistics & Revenue Report',PW/2,39,11,[255,200,200],'normal','center');
+  T(d.periodLabel+'   |   Generated '+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}),PW/2,50,8,[255,220,220],'normal','center');
+  y=72;
+
+  /* KPI row */
+  const kpis=[{l:'Total Parcels',v:d.total.toLocaleString()},{l:'Delivered',v:d.delivered.toLocaleString()},
+    {l:'In Transit',v:d.transit.toLocaleString()},{l:'Revenue',v:'THB '+d.revenue_total.toLocaleString()},{l:'Avg Fee',v:'THB '+d.avg}];
+  const kw=(PW-ML-MR-12)/5;
+  const kbg=[[255,240,240],[240,253,244],[239,246,255],[255,251,235],[245,243,255]];
+  kpis.forEach((k,i)=>{const kx=ML+i*(kw+3);R(kx,y,kw,22,kbg[i]);pdf.setDrawColor(220,200,200);pdf.setLineWidth(0.3);pdf.rect(kx,y,kw,22);T(k.v,kx+kw/2,y+10,8.5,dark,'bold','center');T(k.l,kx+kw/2,y+16,5.5,muted,'normal','center');});
+  y+=30;
+  setProgress(15,'Writing statistics...');
+  await new Promise(r=>setTimeout(r,30));
+
+  if(incStats){
+    CK(12);R(ML-2,y-5,PW-ML-MR+4,9,accent);T('PARCEL STATISTICS - '+d.periodLabel.toUpperCase(),ML,y+0.5,9,[255,255,255],'bold');y+=13;
+    const ch=42,cw2=PW-ML-MR;
+    const bars=d.labels.map((_,i)=>({lbl:d.labels[i],p:d.parcels[i],l:d.letters[i],e:d.express[i],r:d.registered[i]}));
+    const maxV=Math.max(...bars.map(b=>b.p+b.l+b.e+b.r),1);
+    const bw=(cw2/bars.length)*0.65,bgap=(cw2/bars.length)*0.35;
+    CK(ch+20);
+    [0.25,0.5,0.75,1].forEach(f=>{const gy=y+ch-ch*f;L(ML,gy,PW-MR,gy,[240,220,220],0.2);T(Math.round(maxV*f),ML-2,gy+1,4.5,muted,'normal','right');});
+    const tcols=[[192,57,43],[29,78,216],[217,119,6],[124,58,237]];
+    bars.forEach((b,i)=>{const bx=ML+i*(bw+bgap)+bgap/2;let sy=y+ch;[b.p,b.l,b.e,b.r].forEach((v,ti)=>{const bh=(v/maxV)*ch;if(bh<0.2)return;sy-=bh;pdf.setFillColor(...tcols[ti]);pdf.rect(bx,sy,bw,bh,'F');});T(b.lbl,bx+bw/2,y+ch+5,5,muted,'normal','center');});
+    y+=ch+12;
+    const legs=[{l:'Parcels',c:[192,57,43]},{l:'Letters',c:[29,78,216]},{l:'Express',c:[217,119,6]},{l:'Registered',c:[124,58,237]}];
+    let lx=ML; legs.forEach(li=>{pdf.setFillColor(...li.c);pdf.rect(lx,y-3,4,4,'F');T(li.l,lx+6,y,6,muted);lx+=34;}); y+=10;
+    CK(50);
+    const th=['Type','Count','Share','Revenue (THB)','Avg Fee'],tw=[42,24,22,42,28]; let tx=ML;
+    R(ML-1,y-4,PW-ML-MR+2,8,light); th.forEach((h,i)=>{T(h,tx,y+0.5,6.5,muted,'bold');tx+=tw[i];}); y+=8; L(ML,y-1,PW-MR,y-1);
+    const tk=['parcels','letters','express','registered'],tt=tk.map(k=>d[k].reduce((s,v)=>s+v,0)),gr=tt.reduce((s,v)=>s+v,0)||1;
+    tk.forEach((k,i)=>{CK(9);if(i%2===0)R(ML-1,y-4,PW-ML-MR+2,8,[252,248,248]);const row=[k[0].toUpperCase()+k.slice(1),tt[i],Math.round((tt[i]/gr)*100)+'%','THB '+(tt[i]*AVG_FEE[k]).toLocaleString(),'THB '+AVG_FEE[k]];tx=ML;row.forEach((v,j)=>{T(v,tx,y+0.5,7,dark);tx+=tw[j];});y+=9;}); y+=8;
+  }
+
+  setProgress(45,'Building revenue report...');
+  await new Promise(r=>setTimeout(r,30));
+
+  if(incRevenue){
+    CK(12);R(ML-2,y-5,PW-ML-MR+4,9,grn);T('REVENUE REPORT - '+d.periodLabel.toUpperCase(),ML,y+0.5,9,[255,255,255],'bold');y+=13;
+    const rch=40,rcw=PW-ML-MR,maxR=Math.max(...d.revenue,1);
+    const pts=d.revenue.map((v,i)=>({x:ML+(i/Math.max(d.revenue.length-1,1))*rcw,y:y+rch-(v/maxR)*rch}));
+    CK(rch+16);
+    [0.25,0.5,0.75,1].forEach(f=>{const gy=y+rch-rch*f;L(ML,gy,PW-MR,gy,[220,240,225],0.2);T('THB '+Math.round(maxR*f).toLocaleString(),ML-2,gy+1,4.5,muted,'normal','right');});
+    for(let i=0;i<pts.length-1;i++){pdf.setFillColor(230,252,241);pdf.triangle(pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y,pts[i+1].x,y+rch,'F');pdf.triangle(pts[i].x,pts[i].y,pts[i].x,y+rch,pts[i+1].x,y+rch,'F');}
+    pdf.setDrawColor(...grn);pdf.setLineWidth(0.8);for(let i=0;i<pts.length-1;i++)pdf.line(pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y);
+    pts.forEach((p,i)=>{pdf.setFillColor(...grn);pdf.circle(p.x,p.y,1.3,'F');pdf.setFillColor(255,255,255);pdf.circle(p.x,p.y,0.65,'F');T(d.labels[i],p.x,y+rch+5,5,muted,'normal','center');});
+    y+=rch+12;
+    CK(55);
+    const rh2=['Type','Count','Revenue (THB)','Avg Fee','% of Total'],rw2=[44,26,44,32,28]; let rx=ML;
+    R(ML-1,y-4,PW-ML-MR+2,8,light); rh2.forEach((h,i)=>{T(h,rx,y+0.5,6.5,muted,'bold');rx+=rw2[i];}); y+=8; L(ML,y-1,PW-MR,y-1);
+    const tk2=['parcels','letters','express','registered'],tt2=tk2.map(k=>d[k].reduce((s,v)=>s+v,0)),totalRev=tk2.reduce((s,k,i)=>s+tt2[i]*AVG_FEE[k],0);
+    tk2.forEach((k,i)=>{CK(9);if(i%2===0)R(ML-1,y-4,PW-ML-MR+2,8,[252,248,248]);const rev=tt2[i]*AVG_FEE[k];const row=[k[0].toUpperCase()+k.slice(1),tt2[i],'THB '+rev.toLocaleString(),'THB '+AVG_FEE[k],totalRev?Math.round((rev/totalRev)*100)+'%':'0%'];rx=ML;row.forEach((v,j)=>{T(v,rx,y+0.5,7,dark);rx+=rw2[j];});y+=9;});
+    CK(11);R(ML-1,y-4,PW-ML-MR+2,9,[255,240,240]);const totRow=['TOTAL',tt2.reduce((s,v)=>s+v,0),'THB '+totalRev.toLocaleString(),'','100%'];rx=ML;totRow.forEach((v,j)=>{T(v,rx,y+0.5,7.5,accent,'bold');rx+=rw2[j];});y+=14;
+  }
+
+  setProgress(70,'Adding summaries...');
+  await new Promise(r=>setTimeout(r,30));
+
+  if(incRoutes){
+    CK(12);R(ML-2,y-5,PW-ML-MR+4,9,blu);T('TOP ROUTES',ML,y+0.5,9,[255,255,255],'bold');y+=13;
+    const routes=[{n:'Bangkok > Nonthaburi',t:'Metropolitan corridor',c:42},{n:'Bangkok > Chiang Mai',t:'North route',c:31},{n:'Bangkok > Phuket',t:'South route',c:28},{n:'Bangkok > Khon Kaen',t:'Northeast route',c:19},{n:'Bangkok > Hat Yai',t:'Deep south route',c:14}];
+    routes.forEach((r,i)=>{CK(12);if(i%2===0)R(ML-1,y-4,PW-ML-MR+2,10,[252,248,248]);pdf.setFillColor(...accent);pdf.rect(ML-1,y-3.5,7,7,'F');T(i+1,ML+2.5,y+0.5,7,[255,255,255],'bold','center');T(r.n,ML+10,y+0.5,8,dark,'bold');T(r.t,ML+10,y+5,6,muted);T(r.c+' parcels',PW-MR,y+0.5,8,accent,'bold','right');y+=12;});
+    y+=4;
+  }
+
+  if(incSummary){
+    CK(50);R(ML-2,y-5,PW-ML-MR+4,9,pur);T('PERIOD SUMMARY',ML,y+0.5,9,[255,255,255],'bold');y+=13;
+    const cells=[{l:'Delivery Rate',v:d.rate},{l:'Return Rate',v:d.ret},{l:'Peak Day',v:d.peakDay},{l:'Total Collected',v:d.collected}];
+    const cw3=(PW-ML-MR-9)/4;
+    cells.forEach((c,i)=>{const cx=ML+i*(cw3+3);R(cx,y,cw3,24,light);pdf.setDrawColor(220,200,200);pdf.setLineWidth(0.3);pdf.rect(cx,y,cw3,24);T(c.v,cx+cw3/2,y+12,9,dark,'bold','center');T(c.l,cx+cw3/2,y+19,5.5,muted,'normal','center');});
+    y+=32;
+  }
+
+  setProgress(90,'Finalising...');
+  await new Promise(r=>setTimeout(r,60));
+
+  const tp=pdf.getNumberOfPages();
+  for(let p=1;p<=tp;p++){pdf.setPage(p);L(ML,PH-12,PW-MR,PH-12,[220,200,200],0.3);T('Thailand Post Office Management System',ML,PH-7,5.5,muted);T('Page '+p+' of '+tp,PW-MR,PH-7,5.5,muted,'normal','right');T('CONFIDENTIAL',PW/2,PH-7,5.5,[200,170,170],'normal','center');}
+
+  const fname='PostOffice_Report_'+d.periodLabel.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.pdf';
+  pdf.save(fname);
+  setProgress(100,'Done!');
+  await new Promise(r=>setTimeout(r,300));
+}
+
+async function runExport() {
+  closeExportModal();
+  if(exportType==='csv'){
+    showProgress('Exporting CSV...');
+    setProgress(40,'Building rows...');
+    await new Promise(r=>setTimeout(r,300));
+    exportCSV();
+    setProgress(100,'Done!');
+    await new Promise(r=>setTimeout(r,400));
+    hideProgress();
+    showToast('CSV downloaded: PostOffice_Report_'+DATA[currentPeriod].periodLabel.replace(/\s+/g,'_')+'.csv');
+  } else {
+    showProgress('Generating PDF...');
+    try {
+      await exportPDF();
+      hideProgress();
+      showToast('PDF downloaded successfully');
+    } catch(e) {
+      hideProgress();
+      showToast('Error generating PDF');
+      console.error(e);
+    }
+  }
+}
+
+
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'toast green show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); });
+});
+
+/* ══════ INIT ══════ */
+renderAll();
+</script>
+</body>
+</html>

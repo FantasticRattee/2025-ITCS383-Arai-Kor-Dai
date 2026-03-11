@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>User Approval</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
+body{
+
+background:linear-gradient(135deg,#4f8cff,#7fd6ff);
+
+min-height:100vh;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+}
+
+.container{
+
+width:800px;
+
+background:white;
+
+padding:40px;
+
+border-radius:15px;
+
+box-shadow:0 20px 40px rgba(0,0,0,0.2);
+
+}
+
+h2{
+
+text-align:center;
+
+margin-bottom:25px;
+
+}
+
+/* TABLE */
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+}
+
+th,td{
+
+padding:12px;
+
+border-bottom:1px solid #ddd;
+
+text-align:center;
+
+}
+
+th{
+
+background:#f2f5ff;
+
+}
+
+/* BUTTONS */
+
+button{
+
+padding:6px 12px;
+
+border:none;
+
+border-radius:6px;
+
+cursor:pointer;
+
+}
+
+.approve{
+
+background:#28a745;
+
+color:white;
+
+}
+
+.reject{
+
+background:#dc3545;
+
+color:white;
+
+}
+
+.approve:hover{
+
+background:#1e7e34;
+
+}
+
+.reject:hover{
+
+background:#b02a37;
+
+}
+
+/* BACK */
+
+.back{
+
+margin-top:20px;
+
+text-align:center;
+
+}
+
+.back a{
+
+text-decoration:none;
+
+color:#4f8cff;
+
+font-weight:600;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>User Approval</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="userTable">
+
+</tbody>
+
+</table>
+
+<div class="back">
+<a href="AdminDashboardPage.html">Back to Dashboard</a>
+</div>
+
+</div>
+
+<script>
+
+async function loadUsers(){
+
+try{
+
+const response=await fetch("http://localhost:3000/api/users/pending")
+
+const users=await response.json()
+
+let rows=""
+
+users.forEach(user=>{
+
+rows+=`
+
+<tr>
+
+<td>${user.id}</td>
+
+<td>${user.name}</td>
+
+<td>${user.email}</td>
+
+<td>
+
+<button class="approve" onclick="approveUser(${user.id})">
+Approve
+</button>
+
+<button class="reject" onclick="rejectUser(${user.id})">
+Reject
+</button>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+document.getElementById("userTable").innerHTML=rows
+
+}catch(err){
+
+console.log(err)
+
+}
+
+}
+
+async function approveUser(id){
+
+await fetch(`http://localhost:3000/api/users/${id}/approve`,{
+
+method:"PUT"
+
+})
+
+loadUsers()
+
+}
+
+async function rejectUser(id){
+
+await fetch(`http://localhost:3000/api/users/${id}`,{
+
+method:"DELETE"
+
+})
+
+loadUsers()
+
+}
+
+loadUsers()
+
+</script>
+
+</body>
+
+</html>

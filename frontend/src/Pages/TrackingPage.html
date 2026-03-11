@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Office — Track Shipment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #E60012;
+      --accent-dark: #8B0009;
+      --accent-light: #FF6666;
+      --bg: linear-gradient(135deg, #E60012 0%, #FFAAAA 100%);
+      --card: rgba(255,255,255,0.97);
+      --text: #1a1a2e;
+      --muted: #6B5050;
+      --input-bg: #FFF5F5;
+      --input-border: #FFD0D0;
+      --error: #e53935;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --green-border: #bbf7d0;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --amber-border: #fde68a;
+      --blue: #1d4ed8;
+      --blue-bg: #eff6ff;
+      --blue-border: #bfdbfe;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --red-border: #fecaca;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'IBM Plex Sans', sans-serif;
+      padding: 36px 16px 80px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    .blob { position: fixed; border-radius: 50%; filter: blur(72px); opacity: 0.17; pointer-events: none; z-index: 0; animation: blobFloat 10s ease-in-out infinite alternate; }
+    .b1 { width: 500px; height: 500px; background: #E60012; top: -150px; left: -130px; }
+    .b2 { width: 380px; height: 380px; background: #FF9999; bottom: -100px; right: -80px; animation-delay: 4s; }
+    .b3 { width: 220px; height: 220px; background: #FFB3B3; top: 40%; left: 62%; animation-delay: 7s; }
+    @keyframes blobFloat { from { transform: translateY(0) scale(1); } to { transform: translateY(-32px) scale(1.05); } }
+
+    .deco { position: fixed; opacity: 0.055; pointer-events: none; z-index: 0; }
+    .deco svg { fill: #fff; }
+    .d1 { width: 110px; top: 8%; left: 5%; animation: drift 12s ease-in-out infinite alternate; }
+    .d2 { width: 70px; bottom: 14%; left: 15%; animation: drift 9s ease-in-out infinite alternate; animation-delay: 3s; }
+    .d3 { width: 90px; top: 30%; right: 5%; animation: drift 11s ease-in-out infinite alternate; animation-delay: 6s; }
+    .d4 { width: 55px; bottom: 22%; right: 18%; animation: drift 8s ease-in-out infinite alternate; animation-delay: 1.5s; }
+    @keyframes drift { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-20px) rotate(6deg); } }
+
+    /* Layout */
+    .page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; }
+
+    /* Topbar */
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; animation: fadeDown 0.5s ease both; }
+    .back-btn { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.22); border: none; color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.875rem; font-weight: 500; padding: 9px 18px; border-radius: 50px; cursor: pointer; backdrop-filter: blur(8px); text-decoration: none; transition: background 0.2s; }
+    .back-btn:hover { background: rgba(255,255,255,0.35); }
+    .back-btn svg { width: 15px; height: 15px; }
+    .page-title { text-align: center; flex: 1; }
+    .page-title h1 { font-family: 'Barlow', sans-serif; font-size: 2rem; font-weight: 700; color: #fff; text-shadow: 0 2px 14px rgba(160,20,20,0.22); }
+    .page-title p { color: rgba(255,255,255,0.72); font-size: 0.82rem; font-weight: 300; margin-top: 3px; }
+    .spacer { width: 110px; }
+
+    /* Hero search */
+    .search-hero {
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 28px 32px 24px;
+      margin-bottom: 24px;
+      animation: fadeDown 0.5s ease both 0.1s;
+    }
+    .search-hero h2 { font-family: 'Barlow', sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .search-hero p { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 18px; }
+    .search-row { display: flex; gap: 10px; }
+    .search-input-wrap {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px; padding: 0 16px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input-wrap:focus-within { border-color: rgba(255,255,255,0.8); box-shadow: 0 0 0 4px rgba(255,255,255,0.2); }
+    .search-input-wrap svg { color: #d4a0a0; width: 17px; height: 17px; flex-shrink: 0; }
+    .search-input-wrap input { border: none; background: transparent; outline: none; flex: 1; padding: 13px 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.92rem; color: var(--text); letter-spacing: 0.5px; }
+    .search-input-wrap input::placeholder { color: #d4a0a0; letter-spacing: 0; }
+    .search-btn { background: #fff; color: var(--accent); border: none; border-radius: 12px; padding: 13px 24px; font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.16); }
+    .search-btn:active { transform: translateY(0); }
+    .search-btn.loading { opacity: 0.7; pointer-events: none; }
+    .search-btn svg { width: 16px; height: 16px; }
+
+    /* Quick demos */
+    .quick-demos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .qd-label { font-size: 0.72rem; color: rgba(255,255,255,0.6); font-weight: 500; }
+    .qd-chip { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.9); border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: background 0.15s; letter-spacing: 0.5px; font-family: 'IBM Plex Sans', sans-serif; }
+    .qd-chip:hover { background: rgba(255,255,255,0.3); }
+
+    /* Error banner */
+    .err-banner { display: none; background: var(--red-bg); border: 1.5px solid var(--red-border); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; display: none; align-items: center; gap: 10px; animation: fadeUp 0.3s ease both; }
+    .err-banner.show { display: flex; }
+    .err-banner svg { color: var(--red); width: 18px; height: 18px; flex-shrink: 0; }
+    .err-banner span { font-size: 0.84rem; color: var(--red); font-weight: 500; }
+
+    /* ── Results ── */
+    .results { display: none; }
+    .results.show { display: block; animation: fadeUp 0.5s ease both; }
+
+    /* Status header card */
+    .status-card {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(140,30,30,0.18), 0 2px 8px rgba(140,30,30,0.08);
+      margin-bottom: 18px;
+    }
+    .status-banner {
+      padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .status-banner.delivered  { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .status-banner.in-transit { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+    .status-banner.processing { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    .status-banner.returned   { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .status-banner.pending    { background: linear-gradient(135deg, #B8000E, #E60012); }
+
+    .status-left { display: flex; align-items: center; gap: 16px; }
+    .status-icon-big { font-size: 2.6rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); }
+    .status-info h2 { font-family: 'Barlow', sans-serif; font-size: 1.4rem; font-weight: 700; color: #fff; }
+    .status-info p  { font-size: 0.8rem; color: rgba(255,255,255,0.78); margin-top: 3px; }
+
+    .status-badge {
+      background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 50px; padding: 8px 20px;
+      font-size: 0.82rem; font-weight: 700; color: #fff;
+      letter-spacing: 0.5px; backdrop-filter: blur(6px);
+    }
+
+    /* Info grid under status banner */
+    .status-meta {
+      background: var(--card);
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--input-border);
+    }
+    .sm-cell { background: #fff; padding: 14px 18px; }
+    .sm-label { font-size: 0.67rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+    .sm-val { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-top: 3px; }
+    .sm-val.accent { color: var(--accent); }
+
+    /* Map route visual */
+    .route-card {
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(140,30,30,0.16), 0 2px 8px rgba(140,30,30,0.07);
+      padding: 22px 28px;
+      margin-bottom: 18px;
+    }
+    .route-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .route-header-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #FF6666, #E60012); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 3px 8px rgba(192,57,43,0.28); flex-shrink: 0; }
+    .route-header h3 { font-family: 'Barlow', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text); }
+    .route-header p { font-size: 0.73rem; color: var(--muted); }
+
+    .route-visual { display: flex; align-items: center; gap: 0; }
+    .route-node { text-align: center; flex: 0 0 auto; }
+    .rn-dot { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 8px; box-shadow: 0 3px 10px rgba(192,57,43,0.2); }
+    .rn-dot.origin { background: linear-gradient(135deg, #FF6666, #E60012); }
+    .rn-dot.dest   { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .rn-dot.current-loc { background: linear-gradient(135deg, #3b82f6, #1d4ed8); animation: pulse 2s ease infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 3px 10px rgba(59,130,246,0.3); } 50% { box-shadow: 0 3px 18px rgba(59,130,246,0.65); } }
+    .rn-name { font-size: 0.78rem; font-weight: 700; color: var(--text); white-space: nowrap; }
+    .rn-sub  { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+    .route-line { flex: 1; position: relative; height: 4px; background: var(--input-border); margin: 0 4px; margin-bottom: 28px; }
+    .route-line-fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, var(--accent), #22c55e); border-radius: 4px; transition: width 1s ease; }
+    .route-truck { position: absolute; top: -16px; font-size: 1.4rem; transition: left 1s ease; transform: translateX(-50%); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15)); }
+
+    .route-stops { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 1px solid #FFE0E0; }
+    .rs-stop { text-align: center; }
+    .rs-stop .rs-name { font-size: 0.74rem; font-weight: 600; color: var(--text); }
+    .rs-stop .rs-date { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+    .rs-stop .rs-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--input-border); margin: 0 auto 5px; }
+    .rs-stop.passed .rs-dot { background: var(--accent); }
+    .rs-stop.current .rs-dot { background: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.25); }
+
+    /* Main grid */
+    .detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+
+    /* Timeline */
+    .card { background: var(--card); border-radius: 20px; box-shadow: 0 20px 60px rgba(140,30,30,0.16), 0 2px 8px rgba(140,30,30,0.07); overflow: hidden; }
+    .card-header { padding: 18px 24px 14px; border-bottom: 1px solid #FFE0E0; display: flex; align-items: center; gap: 10px; }
+    .card-icon { width: 36px; height: 36px; flex-shrink: 0; background: linear-gradient(135deg, #FF6666, #E60012); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 0 3px 8px rgba(192,57,43,0.28); }
+    .card-header h3 { font-family: 'Barlow', sans-serif; font-size: 1rem; font-weight: 700; color: var(--text); }
+    .card-header p { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .card-body { padding: 20px 24px; }
+
+    /* Timeline events */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .tl-item { display: flex; gap: 16px; position: relative; padding-bottom: 22px; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-item:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: var(--input-border); z-index: 0; }
+    .tl-item.done:not(:last-child)::before { background: linear-gradient(180deg, var(--accent), #FF6666); }
+
+    .tl-dot { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; z-index: 1; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .tl-dot.done    { background: linear-gradient(135deg, #FF6666, #E60012); }
+    .tl-dot.current { background: linear-gradient(135deg, #3b82f6, #1d4ed8); animation: pulseDot 2s ease infinite; }
+    .tl-dot.pending { background: #fff; border: 2px solid var(--input-border); }
+    @keyframes pulseDot { 0%,100% { box-shadow: 0 2px 8px rgba(59,130,246,0.2); } 50% { box-shadow: 0 2px 18px rgba(59,130,246,0.55); } }
+
+    .tl-content { flex: 1; padding-top: 4px; }
+    .tl-title { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .tl-title.pending { color: var(--muted); font-weight: 400; }
+    .tl-loc  { font-size: 0.76rem; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+    .tl-loc svg { width: 12px; height: 12px; }
+    .tl-time { font-size: 0.72rem; color: var(--accent); font-weight: 600; margin-top: 3px; }
+    .tl-time.pending { color: var(--muted); font-weight: 400; }
+    .tl-note { font-size: 0.75rem; color: var(--muted); margin-top: 4px; background: var(--input-bg); border-radius: 6px; padding: 6px 10px; border-left: 3px solid var(--accent-light); }
+
+    /* Package info card */
+    .pkg-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #fff4f4; font-size: 0.83rem; }
+    .pkg-detail-row:last-child { border-bottom: none; }
+    .pkg-key { color: var(--muted); }
+    .pkg-val { font-weight: 600; color: var(--text); text-align: right; }
+    .pkg-val.accent { color: var(--accent); }
+
+    .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; }
+    .sp-delivered  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
+    .sp-in-transit { background: var(--blue-bg);   color: var(--blue);   border: 1px solid var(--blue-border); }
+    .sp-processing { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
+    .sp-returned   { background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
+    .sp-pending    { background: #fff0f0; color: var(--accent); border: 1px solid #f0bfbf; }
+
+    .share-row { display: flex; gap: 8px; margin-top: 14px; }
+    .share-btn { flex: 1; padding: 9px; border-radius: 9px; border: 1.5px solid var(--input-border); background: var(--input-bg); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.76rem; font-weight: 600; color: var(--accent); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .share-btn:hover { border-color: var(--accent); background: #ffe0e0; }
+    .share-btn svg { width: 14px; height: 14px; }
+
+    /* ETA banner */
+    .eta-banner { background: linear-gradient(135deg, #ffe0e0, #fff0f0); border: 1.5px solid #ebb8b8; border-radius: 12px; padding: 14px 18px; margin-top: 14px; display: flex; align-items: center; gap: 12px; }
+    .eta-icon { font-size: 1.6rem; }
+    .eta-info strong { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text); }
+    .eta-info span { font-size: 0.76rem; color: var(--muted); margin-top: 1px; display: block; }
+
+    /* Empty / loading states */
+    .empty-state { text-align: center; padding: 48px 20px; }
+    .empty-state .es-icon { font-size: 3.5rem; margin-bottom: 14px; display: block; }
+    .empty-state h3 { font-family: 'Barlow', sans-serif; font-size: 1.2rem; color: #fff; margin-bottom: 6px; }
+    .empty-state p { font-size: 0.84rem; color: rgba(255,255,255,0.68); line-height: 1.6; }
+
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeUp   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 720px) {
+      .detail-grid { grid-template-columns: 1fr; }
+      .status-meta { grid-template-columns: 1fr 1fr; }
+      .route-visual { overflow-x: auto; padding-bottom: 8px; }
+      .page-title h1 { font-size: 1.45rem; }
+      .search-row { flex-direction: column; }
+      .search-btn { justify-content: center; }
+      .spacer { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="deco d1"><svg viewBox="0 0 100 70"><rect width="100" height="70" rx="6"/><polyline points="0,0 50,38 100,0" stroke="rgba(0,0,0,0.15)" stroke-width="2" fill="none"/></svg></div>
+  <div class="deco d2"><svg viewBox="0 0 80 80"><rect x="5" y="20" width="70" height="50" rx="5"/><rect x="5" y="28" width="70" height="6"/><rect x="35" y="20" width="10" height="50"/></svg></div>
+  <div class="deco d3"><svg viewBox="0 0 100 70"><rect width="100" height="70" rx="6"/><polyline points="0,0 50,38 100,0" stroke="rgba(0,0,0,0.15)" stroke-width="2" fill="none"/></svg></div>
+  <div class="deco d4"><svg viewBox="0 0 80 80"><rect x="5" y="20" width="70" height="50" rx="5"/><rect x="5" y="28" width="70" height="6"/><rect x="35" y="20" width="10" height="50"/></svg></div>
+
+  <div class="page">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <a href="UserDashboard.html" class="back-btn">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </a>
+      <div class="page-title">
+        <h1>🔍 Track Shipment</h1>
+        <p>Real-time parcel tracking</p>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+    <!-- Search hero -->
+    <div class="search-hero">
+      <h2>Enter your Tracking ID</h2>
+      <p>Track any parcel with your tracking number from your receipt or history</p>
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="trackInput" placeholder="e.g. PO-20240312001" maxlength="20" />
+        </div>
+        <button class="search-btn" id="searchBtn" onclick="doTrack()">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19A8 8 0 103 11a8 8 0 008 8z"/></svg>
+          Track
+        </button>
+      </div>
+      <div class="quick-demos">
+        <span class="qd-label">Try demo:</span>
+        <span class="qd-chip" onclick="quickTrack('PO-20240312001')">PO-20240312001</span>
+        <span class="qd-chip" onclick="quickTrack('PO-20240308003')">PO-20240308003</span>
+        <span class="qd-chip" onclick="quickTrack('PO-20240306007')">PO-20240306007</span>
+        <span class="qd-chip" onclick="quickTrack('PO-20240303005')">PO-20240303005</span>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="err-banner" id="errBanner">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span>Tracking ID not found. Please check the number and try again.</span>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+      <!-- Status banner -->
+      <div class="status-card" id="statusCard">
+        <div class="status-banner" id="statusBanner">
+          <div class="status-left">
+            <div class="status-icon-big" id="statusIconBig">📦</div>
+            <div class="status-info">
+              <h2 id="statusTitle">In Transit</h2>
+              <p id="statusSub">Last updated: —</p>
+            </div>
+          </div>
+          <div class="status-badge" id="statusBadge">IN TRANSIT</div>
+        </div>
+        <div class="status-meta">
+          <div class="sm-cell"><div class="sm-label">Tracking ID</div><div class="sm-val accent" id="metaTrackId">—</div></div>
+          <div class="sm-cell"><div class="sm-label">Sender</div><div class="sm-val" id="metaSender">—</div></div>
+          <div class="sm-cell"><div class="sm-label">Receiver</div><div class="sm-val" id="metaReceiver">—</div></div>
+          <div class="sm-cell"><div class="sm-label">Est. Delivery</div><div class="sm-val accent" id="metaETA">—</div></div>
+        </div>
+      </div>
+
+      <!-- Route visual -->
+      <div class="route-card">
+        <div class="route-header">
+          <div class="route-header-icon">🗺️</div>
+          <div><h3>Delivery Route</h3><p id="routeDesc">Bangkok → Chiang Mai</p></div>
+        </div>
+        <div class="route-visual" id="routeVisual">
+          <div class="route-node">
+            <div class="rn-dot origin">📤</div>
+            <div class="rn-name" id="routeOrigin">Bangkok</div>
+            <div class="rn-sub">Origin</div>
+          </div>
+          <div class="route-line" style="flex:1;">
+            <div class="route-line-fill" id="routeLineFill" style="width:60%;"></div>
+            <div class="route-truck" id="routeTruck" style="left:60%;">🚚</div>
+          </div>
+          <div class="route-node">
+            <div class="rn-dot dest">📍</div>
+            <div class="rn-name" id="routeDest">Chiang Mai</div>
+            <div class="rn-sub">Destination</div>
+          </div>
+        </div>
+        <div class="route-stops" id="routeStops"></div>
+      </div>
+
+      <!-- Detail grid -->
+      <div class="detail-grid">
+
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">📋</div>
+            <div><h3>Tracking History</h3><p>Full shipment journey</p></div>
+          </div>
+          <div class="card-body">
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+          <!-- Package info -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-icon">📦</div>
+              <div><h3>Package Info</h3><p>Shipment details</p></div>
+            </div>
+            <div class="card-body">
+              <div class="pkg-detail-row"><span class="pkg-key">Type</span><span class="pkg-val" id="pkgType">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Service</span><span class="pkg-val" id="pkgSvc">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Weight</span><span class="pkg-val" id="pkgWeight">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Dimensions</span><span class="pkg-val" id="pkgDims">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Contents</span><span class="pkg-val" id="pkgContents">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Status</span><span class="pkg-val" id="pkgStatus">—</span></div>
+              <div class="pkg-detail-row"><span class="pkg-key">Shipping Fee</span><span class="pkg-val accent" id="pkgFee">—</span></div>
+
+              <div class="eta-banner" id="etaBanner">
+                <div class="eta-icon">📅</div>
+                <div class="eta-info">
+                  <strong id="etaTitle">Estimated Delivery</strong>
+                  <span id="etaSub">—</span>
+                </div>
+              </div>
+
+              <div class="share-row">
+                <button class="share-btn" onclick="copyTrackId()">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                  Copy ID
+                </button>
+                <button class="share-btn">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                  Print
+                </button>
+                <button class="share-btn">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                  Share
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state (default) -->
+    <div class="empty-state" id="emptyState">
+      <span class="es-icon">📮</span>
+      <h3>Enter a Tracking ID to get started</h3>
+      <p>Type your tracking number above or click one of the demo IDs to see live tracking in action.</p>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Demo shipment database ──
+    const db = {
+      'PO-20240312001': {
+        status: 'in-transit',
+        statusIcon: '🚚', statusTitle: 'In Transit', statusSub: 'Last updated: 12 Mar 2024, 14:32',
+        statusBadge: 'IN TRANSIT',
+        sender: 'Pensri C.', receiver: 'Arthit P.', eta: '14 Mar 2024',
+        type: 'Parcel', service: 'Standard (3–5 days)', weight: '1.2 kg',
+        dims: '25 × 18 × 12 cm', contents: 'Clothing', fee: '฿85',
+        routeProgress: 55, routeOrigin: 'Bangkok', routeDest: 'Roi Et',
+        etaTitle: 'Estimated Delivery', etaSub: 'Friday, 14 March 2024',
+        stops: [
+          { name: 'Bangkok HQ', date: '11 Mar', passed: true },
+          { name: 'Sorting Hub', date: '12 Mar', passed: true },
+          { name: 'Khon Kaen', date: '13 Mar', current: true },
+          { name: 'Roi Et', date: '14 Mar', passed: false },
+        ],
+        events: [
+          { icon: '✅', title: 'Shipment Created & Paid', loc: 'Bangkok Central PO', time: '11 Mar 2024 · 09:15', done: true },
+          { icon: '📦', title: 'Picked Up & Processed', loc: 'Bangkok Sorting Hub', time: '11 Mar 2024 · 14:30', done: true },
+          { icon: '🚛', title: 'Departed Origin Facility', loc: 'Bangkok Distribution Center', time: '12 Mar 2024 · 06:00', done: true, note: 'Package loaded onto truck #TH-4421' },
+          { icon: '🔄', title: 'Arrived at Transit Hub', loc: 'Khon Kaen Hub', time: '12 Mar 2024 · 18:45', done: true },
+          { icon: '🚚', title: 'Out for Delivery', loc: 'En route to Roi Et', time: '13 Mar 2024 · 08:00', current: true, note: 'Package is on its way to the destination city' },
+          { icon: '📍', title: 'Delivery Attempt', loc: 'Roi Et Distribution', time: 'Expected 14 Mar 2024', pending: true },
+          { icon: '🏠', title: 'Delivered', loc: 'Roi Et', time: 'Expected 14 Mar 2024', pending: true },
+        ]
+      },
+      'PO-20240308003': {
+        status: 'delivered',
+        statusIcon: '✅', statusTitle: 'Delivered', statusSub: 'Delivered on 11 Mar 2024 at 13:20',
+        statusBadge: 'DELIVERED',
+        sender: 'Arunee P.', receiver: 'Jirapat T.', eta: 'Delivered',
+        type: 'Parcel', service: 'Standard (3–5 days)', weight: '0.8 kg',
+        dims: '20 × 15 × 10 cm', contents: 'Electronics', fee: '฿75',
+        routeProgress: 100, routeOrigin: 'Bangkok', routeDest: 'Lampang',
+        etaTitle: 'Delivered Successfully', etaSub: 'Monday, 11 March 2024 at 13:20',
+        stops: [
+          { name: 'Bangkok HQ',   date: '08 Mar', passed: true },
+          { name: 'Sorting Hub',  date: '09 Mar', passed: true },
+          { name: 'Tak Hub',      date: '10 Mar', passed: true },
+          { name: 'Lampang',      date: '11 Mar', passed: true },
+        ],
+        events: [
+          { icon: '✅', title: 'Shipment Created & Paid', loc: 'Bangkok Central PO', time: '08 Mar 2024 · 10:00', done: true },
+          { icon: '📦', title: 'Picked Up & Processed', loc: 'Bangkok Sorting Hub', time: '08 Mar 2024 · 15:10', done: true },
+          { icon: '🚛', title: 'Departed Origin Facility', loc: 'Bangkok Distribution Center', time: '09 Mar 2024 · 05:30', done: true },
+          { icon: '🔄', title: 'Arrived at Transit Hub', loc: 'Tak Distribution Hub', time: '10 Mar 2024 · 11:00', done: true },
+          { icon: '🚚', title: 'Out for Delivery', loc: 'Lampang City', time: '11 Mar 2024 · 08:30', done: true },
+          { icon: '🏠', title: 'Delivered', loc: '18 Lampang City Center', time: '11 Mar 2024 · 13:20', done: true, note: 'Signed by: J. Tangsiri' },
+        ]
+      },
+      'PO-20240306007': {
+        status: 'returned',
+        statusIcon: '↩️', statusTitle: 'Returned to Sender', statusSub: 'Return initiated on 09 Mar 2024',
+        statusBadge: 'RETURNED',
+        sender: 'Krisada P.', receiver: 'Thitima W.', eta: 'Returned',
+        type: 'Express', service: 'Express (1–2 days)', weight: '2.1 kg',
+        dims: '35 × 25 × 20 cm', contents: 'Electronics', fee: '฿185',
+        routeProgress: 80, routeOrigin: 'Bangkok', routeDest: 'Phuket',
+        etaTitle: 'Return ETA', etaSub: 'Estimated return: 13 March 2024',
+        stops: [
+          { name: 'Bangkok HQ', date: '06 Mar', passed: true },
+          { name: 'Surat Thani', date: '07 Mar', passed: true },
+          { name: 'Phuket',     date: '08 Mar', passed: true },
+          { name: 'Bangkok',    date: '13 Mar', passed: false },
+        ],
+        events: [
+          { icon: '✅', title: 'Shipment Created & Paid', loc: 'Bangkok Central PO', time: '06 Mar 2024 · 11:00', done: true },
+          { icon: '📦', title: 'Picked Up & Processed', loc: 'Bangkok Sorting Hub', time: '06 Mar 2024 · 16:00', done: true },
+          { icon: '🚛', title: 'Departed Origin Facility', loc: 'Bangkok Distribution Center', time: '07 Mar 2024 · 04:00', done: true },
+          { icon: '🚚', title: 'Out for Delivery', loc: 'Phuket Town', time: '08 Mar 2024 · 09:00', done: true },
+          { icon: '❌', title: 'Delivery Failed', loc: 'Phuket Town', time: '08 Mar 2024 · 14:30', done: true, note: 'Recipient not available. 2nd attempt failed.' },
+          { icon: '↩️', title: 'Return to Sender Initiated', loc: 'Phuket Post Office', time: '09 Mar 2024 · 10:00', current: true, note: 'Package being returned to Bangkok origin address.' },
+          { icon: '🏠', title: 'Returned to Sender', loc: 'Bangkok', time: 'Expected 13 Mar 2024', pending: true },
+        ]
+      },
+      'PO-20240303005': {
+        status: 'processing',
+        statusIcon: '⚙️', statusTitle: 'Processing', statusSub: 'Last updated: 03 Mar 2024, 10:15',
+        statusBadge: 'PROCESSING',
+        sender: 'Prasit W.', receiver: 'Suda M.', eta: '07 Mar 2024',
+        type: 'Letter', service: 'Standard (3–5 days)', weight: '0.1 kg',
+        dims: '22 × 11 × 1 cm', contents: 'Documents', fee: '฿18',
+        routeProgress: 15, routeOrigin: 'Bangkok', routeDest: 'Hat Yai',
+        etaTitle: 'Estimated Delivery', etaSub: 'Thursday, 07 March 2024',
+        stops: [
+          { name: 'Bangkok HQ', date: '03 Mar', passed: true },
+          { name: 'Sorting Hub', date: '04 Mar', current: true },
+          { name: 'Chumphon',    date: '05 Mar', passed: false },
+          { name: 'Hat Yai',    date: '07 Mar', passed: false },
+        ],
+        events: [
+          { icon: '✅', title: 'Shipment Created & Paid', loc: 'Bangkok Central PO', time: '03 Mar 2024 · 08:30', done: true },
+          { icon: '⚙️', title: 'Being Processed at Sorting Facility', loc: 'Bangkok Sorting Hub', time: '03 Mar 2024 · 13:00', current: true, note: 'Item is currently being sorted and labeled for dispatch' },
+          { icon: '🚛', title: 'Awaiting Dispatch', loc: 'Bangkok Distribution Center', time: 'Expected 04 Mar 2024', pending: true },
+          { icon: '🚚', title: 'In Transit to Destination', loc: 'En route to Hat Yai', time: 'Expected 05–06 Mar 2024', pending: true },
+          { icon: '🏠', title: 'Delivered', loc: 'Hat Yai, Songkhla', time: 'Expected 07 Mar 2024', pending: true },
+        ]
+      }
+    };
+
+    function quickTrack(id) {
+      document.getElementById('trackInput').value = id;
+      doTrack();
+    }
+
+    function doTrack() {
+      const input = document.getElementById('trackInput').value.trim().toUpperCase();
+      document.getElementById('errBanner').classList.remove('show');
+      document.getElementById('results').classList.remove('show');
+      document.getElementById('emptyState').style.display = 'none';
+
+      const btn = document.getElementById('searchBtn');
+      btn.classList.add('loading');
+      btn.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="animation:spin .7s linear infinite"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Tracking…`;
+
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19A8 8 0 103 11a8 8 0 008 8z"/></svg> Track`;
+
+        const data = db[input];
+        if (!data) {
+          document.getElementById('errBanner').classList.add('show');
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+        renderResult(input, data);
+      }, 900);
+    }
+
+    function renderResult(id, d) {
+      // Status banner
+      const banner = document.getElementById('statusBanner');
+      banner.className = `status-banner ${d.status}`;
+      document.getElementById('statusIconBig').textContent = d.statusIcon;
+      document.getElementById('statusTitle').textContent   = d.statusTitle;
+      document.getElementById('statusSub').textContent     = d.statusSub;
+      document.getElementById('statusBadge').textContent   = d.statusBadge;
+
+      // Meta
+      document.getElementById('metaTrackId').textContent  = id;
+      document.getElementById('metaSender').textContent   = d.sender;
+      document.getElementById('metaReceiver').textContent = d.receiver;
+      document.getElementById('metaETA').textContent      = d.eta;
+
+      // Route
+      document.getElementById('routeDesc').textContent   = `${d.routeOrigin} → ${d.routeDest}`;
+      document.getElementById('routeOrigin').textContent = d.routeOrigin;
+      document.getElementById('routeDest').textContent   = d.routeDest;
+      setTimeout(() => {
+        document.getElementById('routeLineFill').style.width = d.routeProgress + '%';
+        document.getElementById('routeTruck').style.left     = d.routeProgress + '%';
+      }, 300);
+
+      // Stops
+      const stopsEl = document.getElementById('routeStops');
+      stopsEl.innerHTML = d.stops.map(s => `
+        <div class="rs-stop ${s.passed ? 'passed' : ''} ${s.current ? 'current' : ''}">
+          <div class="rs-dot"></div>
+          <div class="rs-name">${s.name}</div>
+          <div class="rs-date">${s.date}</div>
+        </div>
+      `).join('');
+
+      // Timeline
+      const tlEl = document.getElementById('timeline');
+      tlEl.innerHTML = d.events.map(e => `
+        <div class="tl-item ${e.done ? 'done' : ''}">
+          <div class="tl-dot ${e.done ? 'done' : e.current ? 'current' : 'pending'}">${e.done || e.current ? e.icon : '○'}</div>
+          <div class="tl-content">
+            <div class="tl-title ${e.pending && !e.current ? 'pending' : ''}">${e.title}</div>
+            <div class="tl-loc">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3" fill="none"/></svg>
+              ${e.loc}
+            </div>
+            <div class="tl-time ${e.pending && !e.current ? 'pending' : ''}">${e.time}</div>
+            ${e.note ? `<div class="tl-note">${e.note}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Package info
+      const statusPillMap = {
+        'delivered':  '<span class="status-pill sp-delivered">✅ Delivered</span>',
+        'in-transit': '<span class="status-pill sp-in-transit">🚚 In Transit</span>',
+        'processing': '<span class="status-pill sp-processing">⚙️ Processing</span>',
+        'returned':   '<span class="status-pill sp-returned">↩️ Returned</span>',
+        'pending':    '<span class="status-pill sp-pending">⏳ Pending</span>',
+      };
+      document.getElementById('pkgType').textContent     = d.type;
+      document.getElementById('pkgSvc').textContent      = d.service;
+      document.getElementById('pkgWeight').textContent   = d.weight;
+      document.getElementById('pkgDims').textContent     = d.dims;
+      document.getElementById('pkgContents').textContent = d.contents;
+      document.getElementById('pkgStatus').innerHTML     = statusPillMap[d.status] || d.status;
+      document.getElementById('pkgFee').textContent      = d.fee;
+      document.getElementById('etaTitle').textContent    = d.etaTitle;
+      document.getElementById('etaSub').textContent      = d.etaSub;
+
+      document.getElementById('results').classList.add('show');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function copyTrackId() {
+      const id = document.getElementById('metaTrackId').textContent;
+      navigator.clipboard.writeText(id).then(() => {
+        const btn = event.target.closest('.share-btn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => { btn.innerHTML = orig; btn.style.color = ''; }, 1500);
+      });
+    }
+
+    // Enter key support
+    document.getElementById('trackInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doTrack();
+    });
+
+    // Auto-track if URL has ?id=
+    const urlId = new URLSearchParams(window.location.search).get('id');
+    if (urlId) {
+      document.getElementById('trackInput').value = urlId;
+      doTrack();
+    }
+  </script>
+</body>
+</html>
