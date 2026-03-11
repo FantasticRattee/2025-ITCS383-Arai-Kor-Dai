@@ -3,11 +3,6 @@
 ## Context Diagram
 ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/08df8f1f41f7fdc5928c94abb98a8924b8edd500/designs/Context%20Diagram%20(Current)%20white.svg)
 
-
-
-
-
-
 ## Container Diagram
 ### Bank System
 ![Bank System](https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai/blob/5f2cf5c15291958e1bfe178af797652039a9e7f4/designs/Bank%20system%20App%20Diagram%20(Current)%20white.svg)
