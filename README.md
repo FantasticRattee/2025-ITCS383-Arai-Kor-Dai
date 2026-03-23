@@ -147,12 +147,14 @@ Post office staff can:
 The project is separated into two main parts:
 
 ### Backend
+
 **Node.js + Express**
 
 Provides REST API services and handles database operations.
 
 ### Frontend
-**HTML / Web Interface**
+
+**React / Web Interface**
 
 Provides user interfaces for customers and staff to interact with the system.
 
