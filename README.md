@@ -160,49 +160,61 @@ Provides user interfaces for customers and staff to interact with the system.
 
 ---
 
-## Build & Run Instructions
-
-### 1. Open the Project
-
-Open the repository workspace.
-
+# Getting Started — Run Locally
+ 
+## Prerequisites
+ 
+Make sure you have the following installed before getting started:
+ 
+- [Node.js](https://nodejs.org/) (v16 or higher recommended)
+- npm (comes bundled with Node.js)
+- [Git](https://git-scm.com/)
+ 
+---
+ 
+## 1. Clone the Repository
+ 
+Open a terminal and run:
+ 
+```bash
+git clone https://github.com/ICT-Mahidol/2025-ITCS383-Arai-Kor-Dai.git
+cd 2025-ITCS383-Arai-Kor-Dai
+```
+ 
+---
+ 
+## 2. Run the Backend
+ 
+Open a terminal, navigate to the backend folder, install dependencies, and start the server:
+ 
+```bash
+cd implementations/backend
+npm install
+node server.js
+```
+ 
+The backend server should now be running. Keep this terminal open.
+ 
+---
+ 
+## 3. Run the Frontend (React)
+ 
+Open a **second terminal**, navigate to the frontend folder, install dependencies, and start the dev server:
+ 
+```bash
+cd implementations/frontend
+npm install
+npm start
+```
+ 
+Your browser should automatically open at `http://localhost:3000`.
+ 
 ---
 
-### 2. Start the Website Server
-
-Click the **"Go Live"** button located at the **bottom-right corner**.
-
-This will start the local development server.
-
----
-
-### 3. Navigate to the Frontend Files
-
-Follow this folder path in the file explorer:
-
-```
-implementations
-└── frontend
-    └── src
-        └── Pages
-```
-
----
-
-### 4. Open the Login Page
-
-Open the file:
-
-```
-loginpage.html
-```
-
----
-
-### 5. Run the System
-
-Once the file is opened, the browser will display the **login page of the Post Office system** where users can:
-
-- Register a new account
+## Troubleshooting
+ 
+- **Port already in use** — If you see `Would you like to run the app on another port instead? (Y/n)`, simply press `Y` to run on the next available port, or free up the port and restart.
+- **`npm` not found** — Install [Node.js](https://nodejs.org/) first; npm is included.
+- **Backend not connecting** — Ensure the backend terminal is still running before starting the frontend.
 - Log in to the system
 - Access parcel services
