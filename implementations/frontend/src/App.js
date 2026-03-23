@@ -23,10 +23,11 @@ export default function App() {
       <Routes>
 
         {/* ── Default ── */}
-        <Route path="/" element={<LoginPage />} />/>
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* ── User ── */}
         <Route path="/login"             element={<LoginPage />} />
+        <Route path="/dashboard"         element={<UserDashboard />} />
         <Route path="/register"          element={<RegisterPage />} />
         <Route path="/create-shipment"   element={<CreateShipmentPage />} />
         <Route path="/tracking"          element={<TrackingPage />} />
@@ -42,7 +43,7 @@ export default function App() {
         <Route path="/admin/users"       element={<UserApprovalPage />} />
 
         {/* ── 404 fallback ── */}
-        <Route path="*"                  element={<Navigate to="/" replace />} />
+        <Route path="*"                  element={<Navigate to="/login" replace />} />
 
       </Routes>
     </BrowserRouter>
