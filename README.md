@@ -56,59 +56,19 @@ frontend/
 ## Backend File Structure
 
 ```
-backend/
-├── server.js
-├── app.js
-│
-├── config
-│   ├── database.js
-│   ├── jwtConfig.js
-│   └── securityConfig.js
-│
-├── routes
-│   ├── authRoutes.js
-│   ├── shipmentRoutes.js
-│   ├── paymentRoutes.js
-│   ├── trackingRoutes.js
-│   └── adminRoutes.js
-│
-├── controllers
-│   ├── authController.js
-│   ├── shipmentController.js
-│   ├── paymentController.js
-│   ├── trackingController.js
-│   └── adminController.js
-│
-├── services
-│   ├── userService.js
-│   ├── shipmentService.js
-│   ├── priceService.js
-│   ├── insuranceService.js
-│   ├── paymentService.js
-│   ├── labelService.js
-│   ├── trackingService.js
-│   └── reportService.js
-│
-├── middleware
-│   ├── authMiddleware.js
-│   ├── validationMiddleware.js
-│   └── errorHandler.js
-│
-├── models
-│   ├── User.js
-│   ├── Shipment.js
-│   ├── Payment.js
-│   └── Tracking.js
-│
-├── utils
-│   ├── pdfGenerator.js
-│   ├── qrGenerator.js
-│   └── trackingNumberGenerator.js
-│
-└── tests
-    ├── auth.test.js
-    ├── shipment.test.js
-    └── payment.test.js
+implementations/
+└── backend/
+    ├── node_modules/
+    ├── routes/
+    │   ├── activity.js
+    │   ├── notifications.js
+    │   ├── shipments.js
+    │   └── users.js
+    ├── .env
+    ├── db.js
+    ├── package-lock.json
+    ├── package.json
+    └── server.js
 ```
 
 ---
