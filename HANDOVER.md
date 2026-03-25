@@ -152,7 +152,7 @@ The following screenshots demonstrate the system running successfully on the loc
 | **Post Office Staff**  | Internal officers who verify identity and review reports | Implemented: AdminLoginPage, AdminDashboardPage, AdminReportsPage, UserApprovalPage | **Yes** |
 | **Bank System** [external] | Handles PromptPay, Credit Card, TrueMoney payments | Stripe is listed as a dependency. Payment flow is currently mocked/simulated, which is acceptable for development. | **Yes** |
 
-#### Note: Some relationships in the diagram are unclear or have no label. Improvements were made by adding clear interaction labels and removing unclear connections.
+#### Some relationships in the diagram are unclear or have no label. Improvements were made by adding clear interaction labels and removing unclear connections.
 
 ### 2.2 C4 Container Diagram
 
@@ -163,20 +163,23 @@ The following screenshots demonstrate the system running successfully on the loc
 | **Post Office Management** (separate container) | **Not separate** — Admin pages are part of the same React frontend and use the same backend API. No distinct container. | **No** — Design shows a separate container, but implementation merges admin into the main frontend/backend. |
 | **Bank System (External)** | Stripe dependency exists in package.json. Payment is currently mocked, which is acceptable for development. | **Yes** |
 
-#### Note: Container diagram includes more details than necessary and mixes container-level and component-level elements. Some parts, such as the Post Office Management container, are not implemented as separate containers in the actual system.
+#### Container diagram includes more details than necessary and mixes container-level and component-level elements. Some parts, such as the Post Office Management container, are not implemented as separate containers in the actual system.
 
 ### 2.3 C4 Component Diagram
 
 | Component (Design) | Mapped Implementation | Consistent? |
 |---------------------|----------------------|-------------|
-| **Frontend/Backend (Core API)** | `server.js` + route files handle routing, auth (bcrypt login), CORS | **Yes** |
+| **Frontend/Backend (Core API)** | `server.js` with route files handle routing, authentication (bcrypt), and CORS | **Yes** |
 | **Shipping Service** | `routes/shipments.js` — POST /api/shipments creates shipments with type, weight, dimensions, label data | **Yes** |
-| **Payment Service** | `routes/shipments.js` — payment recorded in same transaction as shipment creation. No separate payment route file. | **Partial** — Design shows isolated Payment Service, but payment logic is embedded in the shipment creation endpoint. |
-| **Logistics Service** | Price calculation happens **client-side** in CreateShipmentPage.jsx, not in a dedicated backend component. | **No** — Design shows a backend Logistics Service, but implementation does pricing on the frontend. |
+| **Payment Service** | `routes/shipments.js` — payment handled within in shipment creation transaction. No separate payment route file. | **Partial** — Design shows isolated Payment Service, but payment logic is embedded in the shipment creation endpoint. |
+| **Logistics Service** | Price calculation performed **client-side** in CreateShipmentPage.jsx, not in a dedicated backend component. | **No** — Design shows a backend Logistics Service, but implementation does pricing on the frontend. |
 | **Tracking Store Service** | `routes/shipments.js` — GET /api/shipments/track/:trackingNumber | **Yes** — tracking is served from the shipments table. |
 | **Office Service** | `routes/users.js` — GET /api/user/stats/:id for dashboard stats. Admin reports generated client-side via jsPDF. | **Partial** — Stats endpoint exists, but PDF report generation is client-side, not a backend service. |
 
-### 2.4 DFD Level 1 — Process Verification
+#### Some components in the design are not fully separated in the implementation. For example, payment logic is combined with shipment creation, and price calculation is handled on  frontend not in backend service. Some component names and boundaries are also unclear or inconsistent.
+### 2.4 Usecase Diagram 
+The system boundary is not labeled, which makes it unclear what system the use cases belong to.
+### 2.5 DFD Level 1 — Process Verification
 
 | Process (Design) | Implementation | Consistent? |
 |-------------------|----------------|-------------|
@@ -187,7 +190,7 @@ The following screenshots demonstrate the system running successfully on the loc
 | P5: Insurance Processing | Insurance flag stored as column in shipments table | **Yes** (simplified) |
 | P6: Admin Dashboard | GET /api/user/stats + client-side jsPDF reports | **Partial** |
 
-### 2.5 Class Diagram Verification
+### 2.6 Class Diagram Verification
 
 The original class diagram (`designs/Class_Diagram_Arai-Kor-Dai.png`) defines 7 classes: **User** (parent), **Customer**, **Admin**, **Shipment**, **Receiver**, **Payment**, **Insurance**, and **Tracking**. Below is a detailed comparison against the actual database schema (`setup.sql`) and route implementations.
 
