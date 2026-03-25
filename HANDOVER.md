@@ -147,9 +147,12 @@ The following screenshots demonstrate the system running successfully on the loc
 
 | Design Element | Design Description | Implementation | Consistent? |
 |----------------|-------------------|----------------|-------------|
-| **Customer** actor | Registered user who creates shipments, pays, and tracks parcels | Implemented: LoginPage, RegisterPage, CreateShipmentPage, PaymentPage, TrackingPage | **Yes** |
-| **Post Office Staff** actor | Internal officers who verify identity and review reports | Implemented: AdminLoginPage, AdminDashboardPage, AdminReportsPage, UserApprovalPage | **Yes** |
-| **Bank System** external actor | Handles PromptPay, Credit Card, TrueMoney payments | Stripe is listed as a dependency. Payment flow is currently mocked/simulated, which is acceptable for development. | **Yes** |
+| **Post Office Management System** | Core system managing shipments, payments, and tracking| Implemented: FrontendPage (LoginPage, CreateShipmentPage, etc.) and backend services | **Yes** |
+| **Customer** | Registered user who creates shipments, pays, and tracks parcels | Implemented: LoginPage, RegisterPage, CreateShipmentPage, PaymentPage, TrackingPage | **Yes** |
+| **Post Office Staff**  | Internal officers who verify identity and review reports | Implemented: AdminLoginPage, AdminDashboardPage, AdminReportsPage, UserApprovalPage | **Yes** |
+| **Bank System** [external] | Handles PromptPay, Credit Card, TrueMoney payments | Stripe is listed as a dependency. Payment flow is currently mocked/simulated, which is acceptable for development. | **Yes** |
+
+#### Note: Some relationships in the diagram are unclear or have no label. Improvements were made by adding clear interaction labels and removing unclear connections.
 
 ### 2.2 C4 Container Diagram
 
@@ -159,6 +162,8 @@ The following screenshots demonstrate the system running successfully on the loc
 | **Backend (API Server)** | Node.js + Express 5 on port 3000, 4 route files | **Yes** |
 | **Post Office Management** (separate container) | **Not separate** — Admin pages are part of the same React frontend and use the same backend API. No distinct container. | **No** — Design shows a separate container, but implementation merges admin into the main frontend/backend. |
 | **Bank System (External)** | Stripe dependency exists in package.json. Payment is currently mocked, which is acceptable for development. | **Yes** |
+
+#### Note: Container diagram includes more details than necessary and mixes container-level and component-level elements. Some parts, such as the Post Office Management container, are not implemented as separate containers in the actual system.
 
 ### 2.3 C4 Component Diagram
 
