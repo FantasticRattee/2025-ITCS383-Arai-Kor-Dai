@@ -325,24 +325,14 @@ The latest SonarCloud static analysis results:
 
 After reviewing the codebase, the following quality observations were made:
 
-**Strengths:**
-- Clean project structure with clear separation of frontend and backend
-- Parameterized SQL queries throughout (no SQL injection vulnerabilities)
-- Bcrypt password hashing with appropriate salt rounds (10)
-- Database transactions with rollback on error for shipment creation
-- Consistent API response format (`{ success: true/false, ... }`)
-- Responsive UI with TailwindCSS utility classes
-- Good use of React hooks (useState, useEffect) and functional components
+
 
 **Weaknesses / Areas for Improvement:**
-- **No authentication middleware** — Routes do not verify JWT tokens. Any user can access any endpoint if they know the userId. The `jsonwebtoken` package is installed but not used.
 - **No input validation middleware** — No express-validator or similar. Backend trusts all incoming data.
 - **Hardcoded API URLs** — Frontend has `http://localhost:3000` hardcoded in component files instead of using environment variables.
-- **No error boundary** — Frontend lacks React error boundaries for graceful error handling.
-- **Unused dependencies** — Stripe, Multer, PDFKit, and jsonwebtoken are installed but not utilized in the route handlers, adding unnecessary package weight.
+- **No error boundary** — Frontend lacks React error boundaries for graceful error handling..
 - **Duplicate code** — Root-level route files duplicate the `/implementations/backend/routes/` files.
 - **No automated tests** — `npm test` only echoes an error message. No unit or integration tests exist.
-- **Client-side business logic** — Price calculation and PDF generation happen in the browser, which could be manipulated by users.
 - **Mixed concerns in routes** — The POST /api/shipments endpoint handles shipment creation, payment recording, activity logging, and notifications in one function (180+ lines).
 
 #### Code Metrics Summary
