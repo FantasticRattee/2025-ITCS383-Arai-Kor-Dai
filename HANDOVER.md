@@ -380,19 +380,18 @@ Based on my experience receiving this handover, the following information was es
 
 ### 3.c Code Quality — SonarCloud Analysis
 
-#### SonarCloud Results (from Original Team)
+#### SonarCloud Results (New Version)
 
-The original team ran SonarCloud static analysis via GitHub Actions. Their results:
+The latest SonarCloud static analysis results:
 
 | Metric | Result |
 |--------|--------|
-| **Quality Gate** | Passed |
+| **Quality Gate** | Not computed |
 | **Blocker Issues** | 0 |
-| **High Severity Issues** | 0 |
-| **Reliability** | Acceptable |
-| **Maintainability** | Acceptable |
-
-**SonarCloud Dashboard:** https://sonarcloud.io/project/overview?id=K0311_2025-ITCS383-Arai-Kor-Dai
+| **High Severity Issues** | 13 |
+| **Reliability** | D (329 open issues) |
+| **Maintainability** | A (333 open issues) |
+| **Security** | A (0 open issues) |
 
 #### Manual Code Quality Observations
 
