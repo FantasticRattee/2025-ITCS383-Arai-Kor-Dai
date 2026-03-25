@@ -25,7 +25,7 @@ The Post Office Online Shipping System is a full-stack web application for Thail
 
 | Feature | Description |
 |---------|-------------|
-| **User Registration (FR-01)** | 3-step registration flow: personal info, contact details, account setup. Includes emoji avatar picker and national ID upload for KYC verification. |
+| **User Registration (FR-01)** | 3-step registration flow: personal info, contact details, account setup. National ID upload and selfie holding ID card for KYC verification. |
 | **Account Verification (FR-02)** | Admin manually reviews uploaded ID documents and selfie, then approves or rejects the account via the User Approval page. |
 | **User Login (FR-03)** | Email + password authentication with bcrypt hash comparison. Separate user/admin login tabs. Password show/hide toggle and form validation. |
 | **Create Shipment (FR-04)** | Multi-section form: sender info, receiver info, package type (Parcel/Letter/Express/Registered), service level (Standard/Priority/Same Day), dimensions, weight, contents, declared value, special handling (Fragile/Keep Cold), and insurance toggle. |
