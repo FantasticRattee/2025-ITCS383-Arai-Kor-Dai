@@ -250,29 +250,7 @@ The original class diagram (`designs/Class_Diagram_Arai-Kor-Dai.png`) defines 7 
 | 15 | Report generation is client-side (jsPDF), not a backend Office Service | C4 Component | Low |
 | 16 | User `accountStatus` field (pending/approved/rejected) not in schema — uses `role` only | Class Diagram | Low |
 
-### 2.7 Updated C4 Diagram (Reflecting Actual Implementation)
 
-#### Updated Context Diagram
-
-```mermaid
-flowchart TB
-    Customer["Customer\n(Web Browser)"]
-    Staff["Post Office Staff\n(Web Browser)"]
-
-    System["Post Office Online\nShipping System"]
-
-    Customer -->|"Register, Login,\nCreate Shipment,\nPay, Track"| System
-    System -->|"Dashboard, Label PDF,\nTracking Status"| Customer
-
-    Staff -->|"Login, Approve Users,\nView Reports"| System
-    System -->|"Statistics, PDF Reports"| Staff
-
-    Bank["Bank System\n(External — Stripe)\nCurrently mocked"]
-
-    System -->|"Payment requests"| Bank
-
-    style Bank fill:#f0f0f0,stroke:#999
-```
 
 
 ---
