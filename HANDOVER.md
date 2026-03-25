@@ -159,11 +159,11 @@ The following screenshots demonstrate the system running successfully on the loc
 | Container (Design) | Implementation | Consistent? |
 |---------------------|----------------|-------------|
 | **Frontend (Web Application)** | React 19 SPA with TailwindCSS, served on port 3001 | **Yes** |
-| **Backend (API Server)** | Node.js + Express 5 on port 3000, 4 route files | **Yes** |
+| **Backend (API Server)** | Node.js + Express 5 on port 3000, multiple route files | **Yes** |
 | **Post Office Management** (separate container) | **Not separate** — Admin pages are part of the same React frontend and use the same backend API. No distinct container. | **No** — Design shows a separate container, but implementation merges admin into the main frontend/backend. |
 | **Bank System (External)** | Stripe dependency exists in package.json. Payment is currently mocked, which is acceptable for development. | **Yes** |
 
-#### Container diagram includes more details than necessary and mixes container-level and component-level elements. Some parts, such as the Post Office Management container, are not implemented as separate containers in the actual system.
+#### Container diagram includes more details than necessary and mixes container-level and component-level elements. Some parts, such as the Post Office Management
 
 ### 2.3 C4 Component Diagram
 
@@ -176,9 +176,11 @@ The following screenshots demonstrate the system running successfully on the loc
 | **Tracking Store Service** | `routes/shipments.js` — GET /api/shipments/track/:trackingNumber | **Yes** — tracking is served from the shipments table. |
 | **Office Service** | `routes/users.js` — GET /api/user/stats/:id for dashboard stats. Admin reports generated client-side via jsPDF. | **Partial** — Stats endpoint exists, but PDF report generation is client-side, not a backend service. |
 
-#### Some components in the design are not fully separated in the implementation. For example, payment logic is combined with shipment creation, and price calculation is handled on  frontend not in backend service. Some component names and boundaries are also unclear or inconsistent.
+#### Some components in the design are not fully separated in the implementation. For example, payment logic is combined with shipment creation, and price calculation is handled on frontend not in backend service. Some component names and boundaries are also unclear or inconsistent.
+
 ### 2.4 Usecase Diagram 
-The system boundary is not labeled, which makes it unclear what system the use cases belong to.
+The system boundary is not labeled, making it unclear what system the use cases belong to. A clear system name should be added.
+
 ### 2.5 DFD Level 1 — Process Verification
 
 | Process (Design) | Implementation | Consistent? |
