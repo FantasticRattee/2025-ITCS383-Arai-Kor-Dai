@@ -328,12 +328,9 @@ After reviewing the codebase, the following quality observations were made:
 
 
 **Weaknesses / Areas for Improvement:**
-- **No input validation middleware** — No express-validator or similar. Backend trusts all incoming data.
 - **Hardcoded API URLs** — Frontend has `http://localhost:3000` hardcoded in component files instead of using environment variables.
-- **No error boundary** — Frontend lacks React error boundaries for graceful error handling..
-- **Duplicate code** — Root-level route files duplicate the `/implementations/backend/routes/` files.
 - **No automated tests** — `npm test` only echoes an error message. No unit or integration tests exist.
-- **Mixed concerns in routes** — The POST /api/shipments endpoint handles shipment creation, payment recording, activity logging, and notifications in one function (180+ lines).
+
 
 #### Code Metrics Summary
 
@@ -342,7 +339,6 @@ After reviewing the codebase, the following quality observations were made:
 | Backend route files | 4 files, ~353 lines total |
 | Frontend page components | 12 JSX files |
 | Database tables | 5 (users, shipments, payments, notifications, activity_log) |
-| API endpoints | 11 |
 | Test coverage | 0% (no tests) |
 | npm vulnerabilities (frontend) | 27 (9 low, 3 moderate, 15 high) |
 | npm vulnerabilities (backend) | 0 |
