@@ -393,6 +393,7 @@ The latest SonarCloud static analysis results:
 | **Maintainability** | A (333 open issues) |
 | **Security** | A (0 open issues) |
 
+![alt text](evidence/18-sonarcube_image1.png) ![alt text](evidence/19-sonarcube_image2.png) ![alt text](evidence/20-sonarcube_image3.png) ![alt text](evidence/21-sonarcube_image4.png) ![alt text](evidence/22-sonarcube_image5.png)
 #### Manual Code Quality Observations
 
 After reviewing the codebase, the following quality observations were made:
