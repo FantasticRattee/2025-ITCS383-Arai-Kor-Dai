@@ -274,57 +274,6 @@ flowchart TB
     style Bank fill:#f0f0f0,stroke:#999
 ```
 
-#### Updated Container Diagram
-
-```mermaid
-flowchart TB
-    subgraph "Post Office System"
-        FE["Frontend\n(React 19 + TailwindCSS)\nPort 3001\n---\nIncludes BOTH customer\nand admin pages"]
-        BE["Backend API\n(Node.js + Express 5)\nPort 3000\n---\n4 route files"]
-        DB["MySQL Database\n(postoffice)\n---\n5 tables"]
-    end
-
-    Customer["Customer"] --> FE
-    Staff["Post Office Staff"] --> FE
-    FE -->|"REST API calls\n(JSON over HTTP)"| BE
-    BE -->|"mysql2 connection pool"| DB
-
-    style FE fill:#61dafb,stroke:#333
-    style BE fill:#68a063,stroke:#333
-    style DB fill:#00758f,stroke:#333
-```
-
-#### Updated Component Diagram (Backend)
-
-```mermaid
-flowchart TB
-    subgraph "Backend API (Express 5)"
-        Server["server.js\n(CORS, JSON parser,\nRoute mounting)"]
-
-        Users["routes/users.js\n---\nRegister, Login,\nProfile, Stats"]
-
-        Shipments["routes/shipments.js\n---\nCreate Shipment + Payment\n(single transaction),\nTracking, History, Monthly"]
-
-        Notifications["routes/notifications.js\n---\nGet notifications,\nMark all read"]
-
-        Activity["routes/activity.js\n---\nGet activity log"]
-    end
-
-    DB["MySQL (postoffice)"]
-
-    Server --> Users
-    Server --> Shipments
-    Server --> Notifications
-    Server --> Activity
-
-    Users --> DB
-    Shipments --> DB
-    Notifications --> DB
-    Activity --> DB
-
-    style Server fill:#f0f0f0,stroke:#333
-    style DB fill:#00758f,stroke:#333
-```
 
 ---
 
