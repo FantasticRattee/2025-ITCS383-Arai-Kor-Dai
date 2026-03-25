@@ -1,4 +1,3 @@
-USE postoffice;
 -- ════════════════════════════════════════════════
 --  POST OFFICE SYSTEM — FRESH DATABASE SETUP
 --  This will DROP and RECREATE everything cleanly
