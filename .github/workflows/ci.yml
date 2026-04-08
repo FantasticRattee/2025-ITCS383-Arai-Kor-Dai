@@ -83,10 +83,3 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=${{ github.repository_owner }}
-            -Dsonar.projectKey=${{ github.repository_owner }}_2025-ITCS383-Arai-Kor-Dai
-            -Dsonar.sources=implementations/
-            -Dsonar.tests=implementations/backend/__tests__
-            -Dsonar.javascript.lcov.reportPaths=implementations/backend/coverage/lcov.info
