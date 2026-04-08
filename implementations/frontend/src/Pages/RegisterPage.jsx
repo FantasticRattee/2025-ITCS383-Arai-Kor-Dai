@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+const API = process.env.REACT_APP_API_URL || "https://two025-itcs383-arai-kor-dai-cyio.onrender.com/api";
 
 // ════════════════════════════════════════════════
 //  HELPERS

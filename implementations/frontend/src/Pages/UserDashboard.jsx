@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 // ── CONFIG: เปลี่ยนเป็น URL ของ Render backend ตอน deploy
-const API = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+const API = process.env.REACT_APP_API_URL || "https://two025-itcs383-arai-kor-dai-cyio.onrender.com/api";
 // ── Helpers
 function getInitial(name) {
   return name ? name.trim()[0].toUpperCase() : "?";

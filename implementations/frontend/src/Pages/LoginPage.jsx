@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+const API_URL = process.env.REACT_APP_API_URL || "https://two025-itcs383-arai-kor-dai-cyio.onrender.com/api";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
@@ -498,7 +498,7 @@ export default function LoginPage() {
 
   const clearErrors = () => setErrors({ username: false, password: false });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
   clearErrors();
   const newErrors = {
     username: !username.trim(),
@@ -507,11 +507,29 @@ export default function LoginPage() {
   setErrors(newErrors);
   if (newErrors.username || newErrors.password) return;
   setLoading(true);
-  setTimeout(() => {
+  try {
+    const res = await fetch(`${API_URL}/users/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: username.trim(), password: password.trim() }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      setLoading(false);
+      setErrors({ username: true, password: true });
+      return;
+    }
+    localStorage.setItem("userId", data.userId);
+    localStorage.setItem("userName", data.name);
+    localStorage.setItem("userEmail", data.email);
+    localStorage.setItem("userRole", data.role);
     setLoading(false);
     setSuccess(true);
     setTimeout(() => navigate("/dashboard"), 1200);
-  }, 1800);
+  } catch (e) {
+    setLoading(false);
+    setErrors({ username: true, password: true });
+  }
 };
   
 

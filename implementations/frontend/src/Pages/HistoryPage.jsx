@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 
-const API_URL       = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+const API_URL       = process.env.REACT_APP_API_URL || "https://two025-itcs383-arai-kor-dai-cyio.onrender.com/api";
 const USER_ID       = 1; // replace with real session user ID
 const ROWS_PER_PAGE = 8;
 
