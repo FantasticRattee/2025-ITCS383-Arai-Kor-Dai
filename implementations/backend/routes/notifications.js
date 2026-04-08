@@ -4,13 +4,13 @@ const db     = require('../db');
 // GET /api/notifications/:userId
 router.get('/:userId', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT id, message, type, is_read, created_at
-       FROM notifications WHERE user_id = ?
+       FROM notifications WHERE user_id = $1
        ORDER BY created_at DESC LIMIT 10`,
       [req.params.userId]
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -20,7 +20,7 @@ router.get('/:userId', async (req, res) => {
 router.patch('/:userId/read-all', async (req, res) => {
   try {
     await db.query(
-      `UPDATE notifications SET is_read = 1 WHERE user_id = ?`,
+      `UPDATE notifications SET is_read = 1 WHERE user_id = $1`,
       [req.params.userId]
     );
     res.json({ success: true });

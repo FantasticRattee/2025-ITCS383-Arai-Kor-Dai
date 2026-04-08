@@ -6,10 +6,10 @@ const db     = require('../db');
 // GET /api/shipments/recent
 router.get('/recent', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT tracking_number FROM shipments ORDER BY created_at DESC LIMIT 4`
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -18,14 +18,14 @@ router.get('/recent', async (req, res) => {
 // GET /api/shipments/track/:trackingNumber
 router.get('/track/:trackingNumber', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT tracking_number, status, origin, destination, recipient,
               eta, last_update, amount, type, service, weight, dims, contents, created_at
-       FROM shipments WHERE tracking_number = ?`,
+       FROM shipments WHERE tracking_number = $1`,
       [req.params.trackingNumber]
     );
-    if (!rows.length) return res.status(404).json({ error: 'Not found' });
-    res.json(rows[0]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Not found' });
+    res.json(result.rows[0]);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -34,15 +34,15 @@ router.get('/track/:trackingNumber', async (req, res) => {
 // GET /api/shipments/monthly/:userId
 router.get('/monthly/:userId', async (req, res) => {
   try {
-    const [rows] = await db.query(
-      `SELECT DATE_FORMAT(created_at,'%b') as month, COUNT(*) as count
+    const result = await db.query(
+      `SELECT TO_CHAR(created_at, 'Mon') as month, COUNT(*) as count
        FROM shipments
-       WHERE user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-       GROUP BY MONTH(created_at), month
+       WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+       GROUP BY EXTRACT(MONTH FROM created_at), TO_CHAR(created_at, 'Mon')
        ORDER BY MIN(created_at)`,
       [req.params.userId]
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -51,23 +51,23 @@ router.get('/monthly/:userId', async (req, res) => {
 // GET /api/shipments/history/:userId  — full history for HistoryPage
 router.get('/history/:userId', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT
          s.tracking_number,
-         s.origin        AS sAddr,
-         s.destination   AS rAddr,
+         s.origin        AS "sAddr",
+         s.destination   AS "rAddr",
          s.recipient     AS receiver,
          s.status,
          s.amount,
          s.created_at,
-         p.method        AS paymentMethod
+         p.method        AS "paymentMethod"
        FROM shipments s
        LEFT JOIN payments p ON p.shipment_id = s.id
-       WHERE s.user_id = ?
+       WHERE s.user_id = $1
        ORDER BY s.created_at DESC`,
       [req.params.userId]
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -76,12 +76,12 @@ router.get('/history/:userId', async (req, res) => {
 // GET /api/shipments/:userId
 router.get('/:userId', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const result = await db.query(
       `SELECT tracking_number, recipient, origin, destination, status, eta, amount, created_at
-       FROM shipments WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
+       FROM shipments WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20`,
       [req.params.userId]
     );
-    res.json(rows);
+    res.json(result.rows);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -105,20 +105,21 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
   }
 
-  // Parse numeric amount (strips ฿ if present)
+  // Parse numeric amount (strips currency symbol if present)
   const amount = parseFloat(String(total || '0').replace(/[^0-9.]/g, '')) || 0;
 
-  const conn = await db.getConnection();
+  const client = await db.connect();
   try {
-    await conn.beginTransaction();
+    await client.query('BEGIN');
 
     // 1. Insert shipment row
-    const [shipResult] = await conn.execute(
+    const shipResult = await client.query(
       `INSERT INTO shipments
          (user_id, tracking_number, recipient, origin, destination,
           status, eta, last_update, amount,
           type, service, weight, dims, contents, insurance, handling)
-       VALUES (?, ?, ?, ?, ?, 'paid', DATE_ADD(NOW(), INTERVAL 3 DAY), ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, 'paid', NOW() + INTERVAL '3 days', $6, $7, $8, $9, $10, $11, $12, $13, $14)
+       RETURNING id`,
       [
         userId || 1,
         trackId,
@@ -136,19 +137,19 @@ router.post('/', async (req, res) => {
         handling || 'None',
       ]
     );
-    const shipmentId = shipResult.insertId;
+    const shipmentId = shipResult.rows[0].id;
 
     // 2. Insert payment record
-    await conn.execute(
+    await client.query(
       `INSERT INTO payments (user_id, shipment_id, amount, method)
-       VALUES (?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4)`,
       [userId || 1, shipmentId, amount, paymentMethod || 'Unknown']
     );
 
     // 3. Add activity log entry
-    await conn.execute(
+    await client.query(
       `INSERT INTO activity_log (user_id, type, title, subtitle)
-       VALUES (?, 'created', ?, ?)`,
+       VALUES ($1, 'created', $2, $3)`,
       [
         userId || 1,
         `New shipment created`,
@@ -157,24 +158,24 @@ router.post('/', async (req, res) => {
     );
 
     // 4. Add notification
-    await conn.execute(
+    await client.query(
       `INSERT INTO notifications (user_id, message, type)
-       VALUES (?, ?, 'success')`,
+       VALUES ($1, $2, 'success')`,
       [
         userId || 1,
         `Shipment ${trackId} confirmed. Estimated delivery in 3 days.`,
       ]
     );
 
-    await conn.commit();
+    await client.query('COMMIT');
     res.json({ success: true, shipmentId, trackId });
 
   } catch (e) {
-    await conn.rollback();
+    await client.query('ROLLBACK');
     console.error('Shipment save error:', e);
     res.status(500).json({ error: e.message });
   } finally {
-    conn.release();
+    client.release();
   }
 });
 
