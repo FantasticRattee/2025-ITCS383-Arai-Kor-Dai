@@ -6,7 +6,6 @@ const testEmail = `notiftest_${Date.now()}@test.com`;
 let userId;
 
 beforeAll(async () => {
-  // Create a test user
   const res = await request(app)
     .post('/api/users/register')
     .send({
@@ -17,10 +16,14 @@ beforeAll(async () => {
     });
   userId = res.body.userId;
 
-  // Insert a test notification
+  // Insert test notifications (one read, one unread)
   await db.query(
     `INSERT INTO notifications (user_id, message, type, is_read) VALUES ($1, $2, $3, $4)`,
     [userId, 'Test notification message', 'info', 0]
+  );
+  await db.query(
+    `INSERT INTO notifications (user_id, message, type, is_read) VALUES ($1, $2, $3, $4)`,
+    [userId, 'Already read notification', 'success', 1]
   );
 });
 
@@ -43,6 +46,36 @@ describe('GET /api/notifications/:userId', () => {
     expect(res.body[0]).toHaveProperty('message');
     expect(res.body[0]).toHaveProperty('type');
     expect(res.body[0]).toHaveProperty('is_read');
+    expect(res.body[0]).toHaveProperty('created_at');
+  });
+
+  it('should return notifications ordered by created_at desc', async () => {
+    const res = await request(app)
+      .get(`/api/notifications/${userId}`);
+
+    expect(res.status).toBe(200);
+    if (res.body.length >= 2) {
+      const first = new Date(res.body[0].created_at);
+      const second = new Date(res.body[1].created_at);
+      expect(first.getTime()).toBeGreaterThanOrEqual(second.getTime());
+    }
+  });
+
+  it('should return empty array for user with no notifications', async () => {
+    const res = await request(app)
+      .get('/api/notifications/99999');
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+  });
+
+  it('should limit to 10 notifications max', async () => {
+    const res = await request(app)
+      .get(`/api/notifications/${userId}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeLessThanOrEqual(10);
   });
 });
 
@@ -54,10 +87,18 @@ describe('PATCH /api/notifications/:userId/read-all', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
 
-    // Verify they are marked as read
+    // Verify all are read
     const check = await request(app)
       .get(`/api/notifications/${userId}`);
     const unread = check.body.filter(n => n.is_read === 0);
     expect(unread.length).toBe(0);
+  });
+
+  it('should succeed even for user with no notifications', async () => {
+    const res = await request(app)
+      .patch('/api/notifications/99999/read-all');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 });

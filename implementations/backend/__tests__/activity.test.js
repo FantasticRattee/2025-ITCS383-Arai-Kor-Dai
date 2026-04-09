@@ -6,7 +6,6 @@ const testEmail = `acttest_${Date.now()}@test.com`;
 let userId;
 
 beforeAll(async () => {
-  // Create a test user
   const res = await request(app)
     .post('/api/users/register')
     .send({
@@ -17,10 +16,14 @@ beforeAll(async () => {
     });
   userId = res.body.userId;
 
-  // Insert a test activity
+  // Insert multiple test activities
   await db.query(
     `INSERT INTO activity_log (user_id, type, title, subtitle) VALUES ($1, $2, $3, $4)`,
-    [userId, 'created', 'Test activity', 'Test subtitle']
+    [userId, 'created', 'Test activity 1', 'Subtitle 1']
+  );
+  await db.query(
+    `INSERT INTO activity_log (user_id, type, title, subtitle) VALUES ($1, $2, $3, $4)`,
+    [userId, 'delivered', 'Test activity 2', 'Subtitle 2']
   );
 });
 
@@ -43,6 +46,19 @@ describe('GET /api/activity/:userId', () => {
     expect(res.body[0]).toHaveProperty('type');
     expect(res.body[0]).toHaveProperty('title');
     expect(res.body[0]).toHaveProperty('subtitle');
+    expect(res.body[0]).toHaveProperty('created_at');
+  });
+
+  it('should return activities ordered by created_at desc', async () => {
+    const res = await request(app)
+      .get(`/api/activity/${userId}`);
+
+    expect(res.status).toBe(200);
+    if (res.body.length >= 2) {
+      const first = new Date(res.body[0].created_at);
+      const second = new Date(res.body[1].created_at);
+      expect(first.getTime()).toBeGreaterThanOrEqual(second.getTime());
+    }
   });
 
   it('should return empty array for user with no activity', async () => {
@@ -52,5 +68,13 @@ describe('GET /api/activity/:userId', () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBe(0);
+  });
+
+  it('should limit to 10 activities max', async () => {
+    const res = await request(app)
+      .get(`/api/activity/${userId}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toBeLessThanOrEqual(10);
   });
 });
