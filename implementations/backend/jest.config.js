@@ -9,4 +9,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'clover'],
   coverageDirectory: 'coverage',
   testTimeout: 30000,
+  // Run each test file in its own worker to isolate jest.mock
+  maxWorkers: 1,
+  isolateModules: true,
 };
