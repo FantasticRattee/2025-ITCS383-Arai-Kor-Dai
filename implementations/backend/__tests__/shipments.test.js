@@ -168,6 +168,58 @@ describe('POST /api/shipments', () => {
     expect(res.body.success).toBe(true);
   });
 
+  it('should create shipment with all null optional fields', async () => {
+    const nullTrackId = `PO-NULL-${Date.now()}`;
+    const res = await request(app)
+      .post('/api/shipments')
+      .send({
+        userId: null,
+        trackId: nullTrackId,
+        total: null,
+        pkg: null,
+        svc: null,
+        sname: 'Sender',
+        rname: 'Receiver',
+        sprov: 'Bangkok',
+        rprov: 'Songkhla',
+        weight: '1 kg',
+        dims: null,
+        contents: 'Null test',
+        insurance: null,
+        handling: null,
+        paymentMethod: null,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('should create shipment with empty string optional fields', async () => {
+    const emptyTrackId = `PO-EMPTY-${Date.now()}`;
+    const res = await request(app)
+      .post('/api/shipments')
+      .send({
+        userId,
+        trackId: emptyTrackId,
+        total: '',
+        pkg: '',
+        svc: '',
+        sname: 'Sender',
+        rname: 'Receiver',
+        sprov: 'Nonthaburi',
+        rprov: 'Rayong',
+        weight: '0.3 kg',
+        dims: '',
+        contents: 'Empty fields test',
+        insurance: 'No',
+        handling: '',
+        paymentMethod: '',
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
   it('should reject duplicate tracking number', async () => {
     const res = await request(app)
       .post('/api/shipments')
