@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 
 const API_URL       = process.env.REACT_APP_API_URL || "https://two025-itcs383-arai-kor-dai-cyio.onrender.com/api";
-const USER_ID       = 1; // replace with real session user ID
+const USER_ID       = localStorage.getItem("userId") || 1;
 const ROWS_PER_PAGE = 8;
 
 const TYPE_ICONS = { Parcel:"📦", Letter:"✉️", Express:"⚡", Registered:"📋" };
