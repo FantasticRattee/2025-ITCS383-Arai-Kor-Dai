@@ -7,7 +7,7 @@ The 9 change requests evaluated here come from `D3_CHANGE_REQUESTS.md`:
 | CR | Title | Type |
 |---|---|---|
 | CR-01 | Fix Web Login to Use Real Backend Authentication | Corrective |
-| CR-02 | Correct Backend Route Logic After Database Conversion | Adaptive |
+| CR-02 | Correct Backend Route Logic After Database Conversion | Corrective |
 | CR-03 | Support Parcel Status Tracking With Cloud Database | Adaptive |
 | CR-04 | Adapt the System for Cloud Deployment on Render | Adaptive |
 | CR-05 | Implement Native Android Mobile Client (Feature 1) | Perfective |
@@ -218,7 +218,7 @@ These two CRs are conceptually paired — the deployment forced the database mov
 | CR-07 | Preventive | SLO0 (test entry only) | 6 (but additive) | **Easy** |
 | CR-06 | Perfective | SLO3, SLO7, SLO8 | 1 + 3 + 2 | **Easy** |
 | CR-01 | Corrective | SLO3, SLO1 | 1 + 2 | Medium |
-| CR-02 | Adaptive | SLO0, SLO1 | 6 + 2 | **Difficult** |
+| CR-02 | Corrective | SLO0, SLO1 | 6 + 2 | **Difficult** |
 | CR-03 | Adaptive | SLO0, SLO1, SLO2 | 6 + 2 + 7 | **Difficult** |
 | CR-04 | Adaptive | SLO0, SLO3, SLO5, SLO9 | cross-subsystem | **Difficult** |
 | CR-05 | Perfective | SLO4, SLO5, SLO6, SLO7, SLO8 | 5 SLOs (greenfield) | **Difficult** |
