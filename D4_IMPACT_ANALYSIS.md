@@ -195,7 +195,7 @@ These two CRs are conceptually paired — the deployment forced the database mov
   2. **Subtle SQL syntax differences**: MySQL and PostgreSQL diverge on placeholder syntax (`?` vs `$1`), `INSERT ... RETURNING`, `CASE WHEN`, and date-interval literals. Each route file had to be audited line by line.
   3. **Render free-tier cold starts**: a fresh deployment takes ~50 seconds to wake from idle, which initially looked like a network bug from the Android emulator and required HTTP timeout adjustments.
 
-#### CR-02 — Correct Backend Route Logic After Database Conversion (Adaptive)
+#### CR-02 — Correct Backend Route Logic After Database Conversion (Corrective)
 
 - **Surface size**: 4 route files (`users.js`, `shipments.js`, `notifications.js`, `activity.js`) plus `db.js` — entirely inside **SLO0 + SLO1**.
 - **Downstream reach**: From the matrix, **2 SLOs reach Backend Routes** directly (Web Frontend, Android Networking via Backend Core), and **6 SLOs reach Backend Core**. A query bug in any route file silently breaks a consumer screen on a different subsystem.
