@@ -217,7 +217,7 @@ These two CRs are conceptually paired — the deployment forced the database mov
 | CR-08 | Preventive | SLO9 | 0 | **Easy** |
 | CR-07 | Preventive | SLO0 (test entry only) | 6 (but additive) | **Easy** |
 | CR-06 | Perfective | SLO3, SLO7, SLO8 | 1 + 3 + 2 | **Easy** |
-| CR-01 | Corrective | SLO3, SLO1 | 1 + 2 | Medium |
+| CR-01 | Corrective | SLO3, SLO1 | 1 + 2 | **Medium** |
 | CR-02 | Corrective | SLO0, SLO1 | 6 + 2 | **Difficult** |
 | CR-03 | Adaptive | SLO0, SLO1, SLO2 | 6 + 2 + 7 | **Difficult** |
 | CR-04 | Adaptive | SLO0, SLO3, SLO5, SLO9 | cross-subsystem | **Difficult** |
