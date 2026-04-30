@@ -170,10 +170,31 @@ export default function RegisterPage() {
   async function handleSubmit() {
     if (!validate()) return;
     setLoading(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1600));
-    setLoading(false);
-    setSuccess(true);
+    
+    try {
+      const res = await fetch(`${API}/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstname,
+          lastName: form.lastname,
+          email: form.email,
+          password: form.password
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setErrors(p => ({ ...p, terms: data.error || "Registration failed" }));
+      } else {
+        setSuccess(true);
+      }
+    } catch (err) {
+      setErrors(p => ({ ...p, terms: "Network error: " + err.message }));
+    } finally {
+      setLoading(false);
+    }
   }
 
   // ── Success screen
