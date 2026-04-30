@@ -15,7 +15,7 @@ This document analyzes the Phase 2 maintenance work for Arai-Kor-Dai's **Smart P
 | Type of change | Number of change requests |
 |---|---:|
 | Corrective | 3 |
-| Adaptive | 3 |
+| Adaptive | 2 |
 | Perfective | 2 |
 | Preventive | 2 |
 | **Total** | **9** |
