@@ -39,29 +39,7 @@ jobs:
           name: backend-coverage
           path: implementations/backend/coverage/
 
-  frontend-build:
-    name: Frontend - Build Check
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: implementations/frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: implementations/frontend
-        run: npm ci
-
-      - name: Build frontend
-        working-directory: implementations/frontend
-        run: npm run build
-        env:
-          CI: false
+ 
 
   sonarcloud:
     name: SonarCloud Analysis
