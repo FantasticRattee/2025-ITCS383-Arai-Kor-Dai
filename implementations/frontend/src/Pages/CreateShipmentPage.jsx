@@ -1,167 +1,13 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --accent: #E60012; --accent-dark: #8B0009; --accent-light: #FF6666;
-    --bg: linear-gradient(135deg, #E60012 0%, #FFAAAA 100%);
-    --card: rgba(255,255,255,0.97); --text: #1a1a2e; --muted: #6B5050;
-    --input-bg: #FFF5F5; --input-border: #FFD0D0;
-    --error: #e53935; --success-bg: #f0fdf4; --success: #16a34a;
-  }
-  .cs-root {
-    min-height: 100vh; background: var(--bg);
-    font-family: 'IBM Plex Sans', sans-serif;
-    padding: 36px 16px 64px; position: relative; overflow-x: hidden;
-  }
-  .cs-root::before {
-    content: ''; position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0;
-  }
-  .blob { position: fixed; border-radius: 50%; filter: blur(72px); opacity: 0.17; pointer-events: none; z-index: 0; animation: blobFloat 10s ease-in-out infinite alternate; }
-  .b1 { width: 500px; height: 500px; background: #E60012; top: -150px; left: -130px; }
-  .b2 { width: 380px; height: 380px; background: #FF9999; bottom: -100px; right: -80px; animation-delay: 4s; }
-  .b3 { width: 240px; height: 240px; background: #FFB3B3; top: 40%; left: 60%; animation-delay: 7s; }
-  @keyframes blobFloat { from { transform: translateY(0) scale(1); } to { transform: translateY(-32px) scale(1.05); } }
-  .deco { position: fixed; opacity: 0.055; pointer-events: none; z-index: 0; color: #fff; }
-  .deco svg { fill: currentColor; }
-  .d1 { width: 100px; top: 7%; left: 5%; animation: drift 13s ease-in-out infinite alternate; }
-  .d2 { width: 70px; bottom: 14%; left: 16%; animation: drift 10s ease-in-out infinite alternate; animation-delay: 3s; transform: rotate(-15deg); }
-  .d3 { width: 90px; top: 30%; right: 4%; animation: drift 11s ease-in-out infinite alternate; animation-delay: 6s; transform: rotate(10deg); }
-  .d4 { width: 55px; bottom: 25%; right: 18%; animation: drift 9s ease-in-out infinite alternate; animation-delay: 1.5s; }
-  @keyframes drift { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-20px) rotate(5deg); } }
-  .page { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; animation: fadeDown 0.5s ease both; }
-  .back-btn { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.22); border: none; color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.875rem; font-weight: 500; padding: 9px 18px; border-radius: 50px; cursor: pointer; backdrop-filter: blur(8px); text-decoration: none; transition: background 0.2s; }
-  .back-btn:hover { background: rgba(255,255,255,0.35); }
-  .back-btn svg { width: 15px; height: 15px; }
-  .page-title { text-align: center; flex: 1; }
-  .page-title h1 { font-family: 'Barlow', sans-serif; font-size: 1.9rem; font-weight: 700; color: #fff; text-shadow: 0 2px 14px rgba(160,20,20,0.22); }
-  .page-title p { color: rgba(255,255,255,0.72); font-size: 0.82rem; font-weight: 300; margin-top: 3px; }
-  .topbar-right { width: 110px; display: flex; justify-content: flex-end; }
-  .draft-btn { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem; font-weight: 500; padding: 8px 14px; border-radius: 50px; cursor: pointer; backdrop-filter: blur(8px); transition: background 0.2s; }
-  .draft-btn:hover { background: rgba(255,255,255,0.3); }
-  .main-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-  .card { background: var(--card); border-radius: 20px; box-shadow: 0 20px 60px rgba(140,30,30,0.16), 0 2px 8px rgba(140,30,30,0.07); overflow: hidden; animation: fadeUp 0.55s ease both 0.1s; }
-  .card-header { padding: 22px 28px 18px; border-bottom: 1px solid #FFE0E0; display: flex; align-items: center; gap: 12px; }
-  .card-header-icon { width: 38px; height: 38px; flex-shrink: 0; background: linear-gradient(135deg, #FF6666, #E60012); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(192,57,43,0.3); }
-  .card-header h3 { font-family: 'Barlow', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text); }
-  .card-header p { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
-  .card-body { padding: 24px 28px; }
-  .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-  .fields-grid .full { grid-column: 1 / -1; }
-  .field { display: flex; flex-direction: column; }
-  .field label { font-size: 0.77rem; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: 0.3px; }
-  .field label .req { color: var(--accent); margin-left: 2px; }
-  .input-wrap { display: flex; align-items: center; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 10px; padding: 0 13px; transition: border-color 0.2s, box-shadow 0.2s; }
-  .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
-  .input-wrap.error { border-color: var(--error); }
-  .input-wrap.error:focus-within { box-shadow: 0 0 0 3px rgba(229,57,53,0.1); }
-  .ii { color: #d4a0a0; display: flex; align-items: center; margin-right: 9px; flex-shrink: 0; }
-  .ii svg { width: 15px; height: 15px; }
-  .input-wrap input, .input-wrap select, .input-wrap textarea { border: none; background: transparent; outline: none; flex: 1; padding: 11px 0; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.86rem; color: var(--text); }
-  .input-wrap select { cursor: pointer; }
-  .input-wrap input::placeholder, .input-wrap select::placeholder, .input-wrap textarea::placeholder { color: #d4aaaa; }
-  .input-wrap textarea { resize: none; padding: 10px 0; min-height: 68px; }
-  .field-error { font-size: 0.72rem; color: var(--error); margin-top: 4px; display: none; }
-  .field-error.show { display: block; }
-  .field-hint { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
-  .autofill-hint { font-size: 0.72rem; color: var(--success); margin-top: 4px; font-weight: 500; }
-  .input-wrap.autofilled { border-color: var(--success); background: #f0fdf4; }
-  .input-wrap.autofilled:focus-within { box-shadow: 0 0 0 3px rgba(22,163,106,0.1); }
-  .sec-label { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-  .sec-label::after { content: ''; flex: 1; height: 1px; background: var(--input-border); }
-  .pkg-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 4px; }
-  .pkg-opt { border: 2px solid var(--input-border); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; background: var(--input-bg); transition: all 0.2s; user-select: none; }
-  .pkg-opt:hover { border-color: var(--accent-light); background: #FFE0E0; }
-  .pkg-opt.selected { border-color: var(--accent); background: #ffe0e0; box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
-  .pkg-opt .pkg-icon { font-size: 1.6rem; margin-bottom: 5px; }
-  .pkg-opt .pkg-name { font-size: 0.72rem; font-weight: 600; color: var(--text); }
-  .pkg-opt .pkg-price { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
-  .pkg-opt.selected .pkg-name { color: var(--accent); }
-  .service-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .service-pill { display: flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 50px; border: 2px solid var(--input-border); background: var(--input-bg); font-size: 0.8rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; user-select: none; }
-  .service-pill:hover { border-color: var(--accent-light); color: var(--accent); }
-  .service-pill.selected { border-color: var(--accent); background: #ffe0e0; color: var(--accent); font-weight: 600; }
-  .pill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--input-border); transition: background 0.2s; }
-  .service-pill.selected .pill-dot { background: var(--accent); }
-  .dims-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: var(--input-bg); border: 1.5px solid var(--input-border); border-radius: 10px; }
-  .toggle-info strong { font-size: 0.84rem; font-weight: 600; color: var(--text); display: block; }
-  .toggle-info span { font-size: 0.73rem; color: var(--muted); }
-  .toggle-switch { position: relative; width: 44px; height: 24px; }
-  .toggle-switch input { opacity: 0; width: 0; height: 0; }
-  .toggle-track { position: absolute; inset: 0; background: var(--input-border); border-radius: 50px; cursor: pointer; transition: background 0.25s; }
-  .toggle-track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
-  .toggle-switch input:checked + .toggle-track { background: var(--accent); }
-  .toggle-switch input:checked + .toggle-track::after { transform: translateX(20px); }
-  .chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .chip { display: flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 8px; border: 1.5px solid var(--input-border); background: var(--input-bg); font-size: 0.76rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.18s; user-select: none; }
-  .chip:hover { border-color: var(--accent-light); color: var(--accent); }
-  .chip.on { border-color: var(--accent); background: #ffe0e0; color: var(--accent); font-weight: 600; }
-  .summary-card { background: var(--card); border-radius: 20px; box-shadow: 0 20px 60px rgba(140,30,30,0.16), 0 2px 8px rgba(140,30,30,0.07); overflow: hidden; position: sticky; top: 24px; animation: fadeUp 0.55s ease both 0.2s; }
-  .summary-header { background: linear-gradient(135deg, #B8000E, #E60012); padding: 20px 24px; position: relative; overflow: hidden; }
-  .summary-header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.14) 0%, transparent 60%); }
-  .summary-header h3 { font-family: 'Barlow', sans-serif; font-size: 1.05rem; font-weight: 700; color: #fff; position: relative; z-index: 1; }
-  .summary-header p { font-size: 0.72rem; color: rgba(255,255,255,0.68); margin-top: 2px; position: relative; z-index: 1; }
-  .tracking-preview { margin: 16px 20px 0; padding: 12px 16px; background: #FFF5F5; border: 2px dashed var(--input-border); border-radius: 10px; text-align: center; }
-  .tracking-preview .track-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
-  .tracking-preview .track-id { font-family: 'IBM Plex Sans', sans-serif; font-weight: 700; font-size: 1rem; color: var(--accent); margin-top: 3px; letter-spacing: 1px; }
-  .summary-body { padding: 16px 20px; }
-  .sum-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 9px 0; border-bottom: 1px solid #fff4f4; font-size: 0.82rem; }
-  .sum-row:last-of-type { border-bottom: none; }
-  .sum-key { color: var(--muted); font-weight: 400; flex-shrink: 0; }
-  .sum-val { color: var(--text); font-weight: 600; text-align: right; }
-  .sum-val.accent { color: var(--accent); }
-  .sum-divider { height: 1px; background: var(--input-border); margin: 10px 0; }
-  .sum-total { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 4px; }
-  .sum-total .total-label { font-family: 'Barlow', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); }
-  .sum-total .total-amt { font-family: 'Barlow', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--accent); }
-  .submit-area { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px; }
-  .submit-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #E60012, #B8000E); color: #fff; border: none; border-radius: 11px; font-family: 'Barlow', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; letter-spacing: 0.3px; transition: transform 0.15s, box-shadow 0.2s; box-shadow: 0 4px 18px rgba(192,57,43,0.35); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .submit-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent); pointer-events: none; }
-  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(192,57,43,0.42); }
-  .submit-btn:active { transform: translateY(0); }
-  .submit-btn.loading { opacity: 0.75; pointer-events: none; }
-  .btn-spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .preview-btn { width: 100%; padding: 11px; background: transparent; color: var(--accent); border: 2px solid var(--input-border); border-radius: 11px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 7px; }
-  .preview-btn:hover { border-color: var(--accent); background: var(--input-bg); }
-  .success-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(160,20,20,0.45); backdrop-filter: blur(8px); align-items: center; justify-content: center; animation: fadeIn 0.3s ease both; }
-  .success-overlay.show { display: flex; }
-  .success-box { background: #fff; border-radius: 24px; padding: 44px 40px; text-align: center; max-width: 380px; width: 90%; box-shadow: 0 32px 80px rgba(130,20,20,0.28); animation: popUp 0.45s cubic-bezier(.22,.68,0,1.2) both; }
-  .success-big { font-size: 3.5rem; display: block; margin-bottom: 12px; animation: bounce 0.6s cubic-bezier(.22,.68,0,1.4) both 0.15s; }
-  .success-box h2 { font-family: 'Barlow', sans-serif; font-size: 1.45rem; color: var(--text); margin-bottom: 6px; }
-  .success-box p { font-size: 0.845rem; color: var(--muted); line-height: 1.6; }
-  .success-track { margin: 18px auto 0; padding: 14px 20px; background: var(--input-bg); border-radius: 12px; display: inline-block; width: 100%; }
-  .success-track .st-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
-  .success-track .st-id { font-size: 1.15rem; font-weight: 700; color: var(--accent); letter-spacing: 1.5px; margin-top: 3px; }
-  .success-actions { display: flex; gap: 10px; margin-top: 22px; }
-  .sa-btn { flex: 1; padding: 11px; border-radius: 10px; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.84rem; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; text-decoration: none; display: flex; align-items: center; justify-content: center; }
-  .sa-primary { background: linear-gradient(135deg, #E60012, #B8000E); color: #fff; box-shadow: 0 4px 14px rgba(192,57,43,0.3); }
-  .sa-primary:hover { transform: translateY(-1px); box-shadow: 0 7px 20px rgba(192,57,43,0.38); }
-  .sa-secondary { background: var(--input-bg); color: var(--accent); border: 2px solid var(--input-border) !important; }
-  .sa-secondary:hover { border-color: var(--accent) !important; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes popUp { from { opacity: 0; transform: scale(0.88) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-  @keyframes bounce { 0% { transform: scale(0.4); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
-  @keyframes fadeDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
-  @media (max-width: 760px) {
-    .main-grid { grid-template-columns: 1fr; }
-    .summary-card { position: static; }
-    .pkg-selector { grid-template-columns: repeat(2, 1fr); }
-    .dims-row { grid-template-columns: 1fr 1fr; }
-    .fields-grid { grid-template-columns: 1fr; }
-    .fields-grid .full { grid-column: 1; }
-    .page-title h1 { font-size: 1.4rem; }
-    .topbar-right { display: none; }
-  }
-`;
+import {
+  User, Phone, MapPin, Hash, ClipboardList, Banknote, Map as MapIcon, Package, Mail, Zap, Stamp,
+  GlassWater, Snowflake, ArrowUpFromLine, Layers, Droplets, CreditCard, Printer, Save, Check,
+  PartyPopper,
+} from "lucide-react";
+import AppShell from "../components/AppShell";
+import { Field, Control } from "../components/ui";
+import "./CreateShipmentPage.css";
 
 // ─── Province data ────────────────────────────────────────────────────────────
 const PROVINCE_GROUPS = [
@@ -268,14 +114,16 @@ function generateTrackId() {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-const ProvinceSelect = ({ value, onChange, hasError }) => (
-  <div className={`input-wrap${hasError ? " error" : ""}`}>
-    <span className="ii">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4z"/>
-      </svg>
-    </span>
-    <select value={value} onChange={e => onChange(e.target.value)}>
+const ProvinceSelect = ({ id, value, onChange, hasError }) => (
+  <Control icon={MapIcon}>
+    <select
+      id={id}
+      className="select"
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      aria-invalid={hasError || undefined}
+      aria-describedby={hasError ? `${id}-error` : undefined}
+    >
       <option value="">Select province</option>
       {PROVINCE_GROUPS.map(g => (
         <optgroup key={g.label} label={g.label}>
@@ -283,54 +131,27 @@ const ProvinceSelect = ({ value, onChange, hasError }) => (
         </optgroup>
       ))}
     </select>
-  </div>
-);
-
-const UserIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-  </svg>
-);
-const PhoneIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-  </svg>
-);
-const PinIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-  </svg>
-);
-const HashIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-  </svg>
-);
-const ClipboardIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-  </svg>
-);
-const CurrencyIcon = () => (
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-  </svg>
+  </Control>
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const PKG_TYPES = [
-  { type: "Parcel", icon: "📦", price: "from ฿85", base: 85 },
-  { type: "Letter", icon: "✉️", price: "from ฿18", base: 18 },
-  { type: "Express", icon: "⚡", price: "from ฿210", base: 210 },
-  { type: "Registered", icon: "📋", price: "from ฿120", base: 120 },
+  { type: "Parcel", price: "from ฿85", base: 85 },
+  { type: "Letter", price: "from ฿18", base: 18 },
+  { type: "Express", price: "from ฿210", base: 210 },
+  { type: "Registered", price: "from ฿120", base: 120 },
 ];
+const PKG_ICONS = { Parcel: Package, Letter: Mail, Express: Zap, Registered: Stamp };
 const SERVICES = [
   { label: "Standard (3–5 days)", fee: 0 },
   { label: "Priority (2 days)", fee: 60 },
   { label: "Same Day", fee: 120 },
 ];
+// Values are kept exactly as before (they are passed on to payment as "handling");
+// the leading emoji is only stripped for display and replaced with an icon.
 const CHIPS = ["🔴 Fragile", "❄️ Keep Cold", "☝️ This Side Up", "🚫 No Stack", "💧 Keep Dry"];
+const CHIP_ICONS = [GlassWater, Snowflake, ArrowUpFromLine, Layers, Droplets];
+const chipLabel = (chip) => chip.replace(/^\S+\s+/, "");
 
 const EMPTY_FORM = {
   sname: "", sphone: "", saddr: "", sprov: "", szip: "",
@@ -431,326 +252,297 @@ export default function CreateShipmentPage() {
     setChips([]);
   };
 
-  const F = ({ id, label, req, children, hint }) => (
-    <div className="field">
-      <label>{label}{req && <span className="req">*</span>}</label>
-      {children}
-      {errors[id] && <div className="field-error show">{req}</div>}
-      {hint && <div className="field-hint">{hint}</div>}
-    </div>
-  );
+  // Props shared by every text input: id, value binding, and error wiring.
+  const bind = (key, extra = {}) => ({
+    id: key,
+    className: "input",
+    value: form[key],
+    onChange: e => set(key, e.target.value),
+    "aria-invalid": errors[key] ? true : undefined,
+    "aria-describedby": errors[key] ? `${key}-error` : undefined,
+    ...extra,
+  });
 
   return (
-    <>
-      <style>{styles}</style>
-      <div className="cs-root">
-        <div className="blob b1" /><div className="blob b2" /><div className="blob b3" />
+    <AppShell
+      active="create"
+      title="Create Shipment"
+      subtitle="Fill in details to generate a new shipment label"
+      back={{ href: "/dashboard", label: "Back" }}
+      actions={
+        <button type="button" className="btn btn-secondary btn-sm" aria-label="Save Draft">
+          <Save aria-hidden="true" /><span className="hide-sm">Save Draft</span>
+        </button>
+      }
+    >
+      <div className="cs-grid">
+        {/* ── Left column ── */}
+        <div className="stack">
 
-        <div className="deco d1"><svg viewBox="0 0 80 80"><rect x="5" y="20" width="70" height="50" rx="5"/><rect x="5" y="28" width="70" height="6"/><rect x="35" y="20" width="10" height="50"/></svg></div>
-        <div className="deco d2"><svg viewBox="0 0 100 70"><rect width="100" height="70" rx="6"/><polyline points="0,0 50,38 100,0" stroke="rgba(0,0,0,0.15)" strokeWidth="2" fill="none"/></svg></div>
-        <div className="deco d3"><svg viewBox="0 0 80 80"><rect x="5" y="20" width="70" height="50" rx="5"/><rect x="5" y="28" width="70" height="6"/><rect x="35" y="20" width="10" height="50"/></svg></div>
-        <div className="deco d4"><svg viewBox="0 0 100 70"><rect width="100" height="70" rx="6"/><polyline points="0,0 50,38 100,0" stroke="rgba(0,0,0,0.15)" strokeWidth="2" fill="none"/></svg></div>
-
-        <div className="page">
-          {/* Topbar */}
-          <div className="topbar">
-            <a href="/dashboard" className="back-btn">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-              Back
-            </a>
-            <div className="page-title">
-              <h1>📦 Create Shipment</h1>
-              <p>Fill in details to generate a new shipment label</p>
+          {/* Sender */}
+          <section className="panel" aria-labelledby="cs-sender">
+            <div className="panel-head">
+              <div className="panel-title">
+                <span className="section-step" aria-hidden="true">1</span>
+                <div><h2 id="cs-sender">Sender Information</h2><p>Who is sending this shipment?</p></div>
+              </div>
             </div>
-            <div className="topbar-right">
-              <button className="draft-btn">
-                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                Save Draft
-              </button>
+            <div className="panel-body">
+              <div className="form-grid">
+                <Field id="sname" label="Full Name" required error={errors.sname && "Sender name is required."}>
+                  <Control icon={User}><input type="text" placeholder="Somchai Jaidee" autoComplete="name" {...bind("sname")} /></Control>
+                </Field>
+                <Field id="sphone" label="Phone" required error={errors.sphone && "Phone number required."}>
+                  <Control icon={Phone}><input type="tel" placeholder="081-234-5678" autoComplete="tel" {...bind("sphone")} /></Control>
+                </Field>
+                <Field id="saddr" label="Street Address" required className="span-2" error={errors.saddr && "Address is required."}>
+                  <Control icon={MapPin}><input type="text" placeholder="123 Sukhumvit Road, Khlong Toei" {...bind("saddr")} /></Control>
+                </Field>
+                <Field id="sprov" label="Province" required error={errors.sprov && "Province is required."}>
+                  <ProvinceSelect id="sprov" value={form.sprov} onChange={v => set("sprov", v)} hasError={!!errors.sprov} />
+                </Field>
+                <Field
+                  id="szip" label="Postal Code" required
+                  error={errors.szip && "Postal code required."}
+                  ok={sAutoFilled && `Province auto-filled: ${form.sprov}`}
+                >
+                  <Control icon={Hash} className={sAutoFilled ? "is-autofilled" : ""}>
+                    <input type="text" inputMode="numeric" placeholder="10110" maxLength={5} {...bind("szip", { onChange: e => set("szip", e.target.value.replace(/\D/g, "")) })} />
+                  </Control>
+                </Field>
+              </div>
+            </div>
+          </section>
+
+          {/* Receiver */}
+          <section className="panel" aria-labelledby="cs-receiver">
+            <div className="panel-head">
+              <div className="panel-title">
+                <span className="section-step" aria-hidden="true">2</span>
+                <div><h2 id="cs-receiver">Receiver Information</h2><p>Where is this shipment going?</p></div>
+              </div>
+            </div>
+            <div className="panel-body">
+              <div className="form-grid">
+                <Field id="rname" label="Full Name" required error={errors.rname && "Receiver name is required."}>
+                  <Control icon={User}><input type="text" placeholder="Nattapong Sriwan" {...bind("rname")} /></Control>
+                </Field>
+                <Field id="rphone" label="Phone" required error={errors.rphone && "Phone number required."}>
+                  <Control icon={Phone}><input type="tel" placeholder="089-765-4321" {...bind("rphone")} /></Control>
+                </Field>
+                <Field id="raddr" label="Street Address" required className="span-2" error={errors.raddr && "Address is required."}>
+                  <Control icon={MapPin}><input type="text" placeholder="45 Nimman Road, Suthep" {...bind("raddr")} /></Control>
+                </Field>
+                <Field id="rprov" label="Province" required error={errors.rprov && "Province is required."}>
+                  <ProvinceSelect id="rprov" value={form.rprov} onChange={v => set("rprov", v)} hasError={!!errors.rprov} />
+                </Field>
+                <Field
+                  id="rzip" label="Postal Code" required
+                  error={errors.rzip && "Postal code required."}
+                  ok={rAutoFilled && `Province auto-filled: ${form.rprov}`}
+                >
+                  <Control icon={Hash} className={rAutoFilled ? "is-autofilled" : ""}>
+                    <input type="text" inputMode="numeric" placeholder="50200" maxLength={5} {...bind("rzip", { onChange: e => set("rzip", e.target.value.replace(/\D/g, "")) })} />
+                  </Control>
+                </Field>
+                <Field id="rnotes" label="Delivery Notes" className="span-2">
+                  <textarea id="rnotes" className="textarea" placeholder="Building name, landmark, special instructions…" rows={2} value={form.rnotes} onChange={e => set("rnotes", e.target.value)} />
+                </Field>
+              </div>
+            </div>
+          </section>
+
+          {/* Package Details */}
+          <section className="panel" aria-labelledby="cs-package">
+            <div className="panel-head">
+              <div className="panel-title">
+                <span className="section-step" aria-hidden="true">3</span>
+                <div><h2 id="cs-package">Package Details</h2><p>Type, size, weight &amp; service</p></div>
+              </div>
+            </div>
+            <div className="panel-body">
+
+              <div className="subhead" id="cs-pkg-type">Package Type</div>
+              <div className="choice-grid cs-choices-4" role="radiogroup" aria-labelledby="cs-pkg-type">
+                {PKG_TYPES.map((p, i) => {
+                  const Icon = PKG_ICONS[p.type];
+                  return (
+                    <label key={p.type} className={`choice${pkgIdx === i ? " is-selected" : ""}`}>
+                      <input type="radio" name="pkg-type" checked={pkgIdx === i} onChange={() => setPkgIdx(i)} />
+                      <span className="choice-check" aria-hidden="true">{pkgIdx === i && <Check strokeWidth={3} />}</span>
+                      <Icon className="choice-icon" aria-hidden="true" />
+                      <span className="choice-title">{p.type}</span>
+                      <span className="choice-sub num">{p.price}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="subhead" id="cs-service">Service Level</div>
+              <div className="choice-grid cs-choices-3" role="radiogroup" aria-labelledby="cs-service">
+                {SERVICES.map((s, i) => (
+                  <label key={s.label} className={`choice choice--row${svcIdx === i ? " is-selected" : ""}`}>
+                    <input type="radio" name="service" checked={svcIdx === i} onChange={() => setSvcIdx(i)} />
+                    <span className="choice-check" aria-hidden="true">{svcIdx === i && <Check strokeWidth={3} />}</span>
+                    <span className="choice-title">{s.label}</span>
+                    <span className="choice-sub num">{s.fee ? `+฿${s.fee}` : "No surcharge"}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="subhead">Dimensions &amp; Weight</div>
+              <div className="form-grid-4">
+                <Field id="weight" label="Weight (kg)" required error={errors.weight && "Required."}>
+                  <input type="number" placeholder="1.5" min="0.1" step="0.1" {...bind("weight")} />
+                </Field>
+                <Field id="plen" label="Length (cm)">
+                  <input type="number" placeholder="30" min="1" {...bind("plen")} />
+                </Field>
+                <Field id="pwid" label="Width (cm)">
+                  <input type="number" placeholder="20" min="1" {...bind("pwid")} />
+                </Field>
+                <Field id="phei" label="Height (cm)">
+                  <input type="number" placeholder="15" min="1" {...bind("phei")} />
+                </Field>
+              </div>
+
+              <div className="subhead">Contents &amp; Handling</div>
+              <div className="form-grid">
+                <Field id="contents" label="Package Contents" required className="span-2" error={errors.contents && "Contents description required."}>
+                  <Control icon={ClipboardList}><input type="text" placeholder="e.g. Clothing, Electronics, Documents…" {...bind("contents")} /></Control>
+                </Field>
+                <Field id="declval" label="Declared Value (฿)" className="span-2" hint="Used for insurance & customs purposes.">
+                  <Control icon={Banknote}><input type="number" placeholder="500" min="0" {...bind("declval")} /></Control>
+                </Field>
+              </div>
+
+              <div className="cs-handling">
+                <span className="label" id="cs-handling-label">Special handling</span>
+                <div className="chips" role="group" aria-labelledby="cs-handling-label">
+                  {CHIPS.map((chip, i) => {
+                    const Icon = CHIP_ICONS[i];
+                    return (
+                      <button
+                        type="button"
+                        key={chip}
+                        className="chip"
+                        aria-pressed={chips.includes(chip)}
+                        onClick={() => toggleChip(chip)}
+                      >
+                        <Icon aria-hidden="true" />{chipLabel(chip)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="cs-insurance">
+                <div>
+                  <strong id="cs-ins-title">Add Insurance</strong>
+                  <span>Covers up to declared value — +฿35</span>
+                </div>
+                <label className="switch">
+                  <input type="checkbox" aria-labelledby="cs-ins-title" checked={form.insurance} onChange={e => set("insurance", e.target.checked)} />
+                  <span className="switch-track" />
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* ── Right column — Summary ── */}
+        <aside className="cs-summary-wrap" aria-label="Shipment summary">
+          <div className="panel cs-summary">
+            <div className="panel-head">
+              <div className="panel-title">
+                <div><h2>Shipment Summary</h2><p>Live cost estimate</p></div>
+              </div>
+            </div>
+
+            <div className="cs-label">
+              <div className="eyebrow">Tracking ID (Auto-generated)</div>
+              <div className="cs-label-id mono">{trackId}</div>
+              <div className="cs-barcode" aria-hidden="true" />
+            </div>
+
+            <div className="panel-body cs-summary-body">
+              <div className="cs-route">
+                <div>
+                  <span className="meta-label">From</span>
+                  <span className="cs-route-val">{form.sprov || (form.sname ? form.sname.split(" ")[0] : "—")}</span>
+                </div>
+                <div className="cs-route-line" aria-hidden="true" />
+                <div className="text-right">
+                  <span className="meta-label">To</span>
+                  <span className="cs-route-val">{form.rprov || (form.rname ? form.rname.split(" ")[0] : "—")}</span>
+                </div>
+              </div>
+
+              <div className="kv kv--compact">
+                <div className="kv-row"><span className="kv-key">Package</span><span className="kv-val">{PKG_TYPES[pkgIdx].type}</span></div>
+                <div className="kv-row"><span className="kv-key">Service</span><span className="kv-val">{SERVICES[svcIdx].label.split("(")[0].trim()}</span></div>
+                <div className="kv-row"><span className="kv-key">Weight</span><span className="kv-val num">{form.weight ? `${form.weight} kg` : "— kg"}</span></div>
+                <div className="kv-row"><span className="kv-key">Base Fee</span><span className="kv-val num">฿{pkgBase}</span></div>
+                <div className="kv-row"><span className="kv-key">Service Surcharge</span><span className="kv-val num">{svcFee ? `฿${svcFee}` : "฿0"}</span></div>
+                <div className="kv-row"><span className="kv-key">Weight Surcharge</span><span className="kv-val num">{summary.wSurcharge ? `฿${summary.wSurcharge}` : "฿0"}</span></div>
+                {summary.destKnown && (
+                  <div className="kv-row">
+                    <span className="kv-key">Route Fee</span>
+                    <span className="kv-val num cs-zone">
+                      <span className="tone-dot" style={{ background: summary.zoneColor }} aria-hidden="true" />
+                      {form.sprov === form.rprov ? "฿0 — same province" : `฿${summary.destFee}`}
+                    </span>
+                  </div>
+                )}
+                <div className="kv-row"><span className="kv-key">Insurance</span><span className="kv-val num">{form.insurance ? "฿35" : "—"}</span></div>
+              </div>
+
+              <div className="cs-total">
+                <span>Total</span>
+                <span className="cs-total-amt num">฿{summary.total}</span>
+              </div>
+
+              <div className="stack-sm">
+                <button type="button" className={`btn btn-primary btn-lg btn-block${loading ? " is-loading" : ""}`} onClick={handleSubmit} aria-busy={loading}>
+                  {loading ? (
+                    <><span className="spinner" aria-hidden="true" /><span className="sr-only">Processing</span></>
+                  ) : (
+                    <>
+                      <span>Proceed to Payment</span>
+                      <CreditCard aria-hidden="true" />
+                    </>
+                  )}
+                </button>
+                <button type="button" className="btn btn-secondary btn-block">
+                  <Printer aria-hidden="true" />
+                  Print Label Preview
+                </button>
+              </div>
             </div>
           </div>
+        </aside>
+      </div>
 
-          <div className="main-grid">
-            {/* ── Left column ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-
-              {/* Sender */}
-              <div className="card">
-                <div className="card-header">
-                  <div className="card-header-icon">📤</div>
-                  <div><h3>Sender Information</h3><p>Who is sending this shipment?</p></div>
-                </div>
-                <div className="card-body">
-                  <div className="fields-grid">
-                    <div className="field">
-                      <label>Full Name <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.sname ? " error" : ""}`}>
-                        <span className="ii"><UserIcon /></span>
-                        <input type="text" placeholder="Somchai Jaidee" value={form.sname} onChange={e => set("sname", e.target.value)} />
-                      </div>
-                      {errors.sname && <div className="field-error show">Sender name is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Phone <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.sphone ? " error" : ""}`}>
-                        <span className="ii"><PhoneIcon /></span>
-                        <input type="tel" placeholder="081-234-5678" value={form.sphone} onChange={e => set("sphone", e.target.value)} />
-                      </div>
-                      {errors.sphone && <div className="field-error show">Phone number required.</div>}
-                    </div>
-                    <div className="field full">
-                      <label>Street Address <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.saddr ? " error" : ""}`}>
-                        <span className="ii"><PinIcon /></span>
-                        <input type="text" placeholder="123 Sukhumvit Road, Khlong Toei" value={form.saddr} onChange={e => set("saddr", e.target.value)} />
-                      </div>
-                      {errors.saddr && <div className="field-error show">Address is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Province <span className="req">*</span></label>
-                      <ProvinceSelect value={form.sprov} onChange={v => set("sprov", v)} hasError={!!errors.sprov} />
-                      {errors.sprov && <div className="field-error show">Province is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Postal Code <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.szip ? " error" : ""}${sAutoFilled ? " autofilled" : ""}`}>
-                        <span className="ii"><HashIcon /></span>
-                        <input type="text" placeholder="10110" maxLength={5} value={form.szip} onChange={e => set("szip", e.target.value.replace(/\D/g, ""))} />
-                      </div>
-                      {errors.szip && <div className="field-error show">Postal code required.</div>}
-                      {sAutoFilled && <div className="autofill-hint">Province auto-filled: {form.sprov}</div>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Receiver */}
-              <div className="card">
-                <div className="card-header">
-                  <div className="card-header-icon">📥</div>
-                  <div><h3>Receiver Information</h3><p>Where is this shipment going?</p></div>
-                </div>
-                <div className="card-body">
-                  <div className="fields-grid">
-                    <div className="field">
-                      <label>Full Name <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.rname ? " error" : ""}`}>
-                        <span className="ii"><UserIcon /></span>
-                        <input type="text" placeholder="Nattapong Sriwan" value={form.rname} onChange={e => set("rname", e.target.value)} />
-                      </div>
-                      {errors.rname && <div className="field-error show">Receiver name is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Phone <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.rphone ? " error" : ""}`}>
-                        <span className="ii"><PhoneIcon /></span>
-                        <input type="tel" placeholder="089-765-4321" value={form.rphone} onChange={e => set("rphone", e.target.value)} />
-                      </div>
-                      {errors.rphone && <div className="field-error show">Phone number required.</div>}
-                    </div>
-                    <div className="field full">
-                      <label>Street Address <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.raddr ? " error" : ""}`}>
-                        <span className="ii"><PinIcon /></span>
-                        <input type="text" placeholder="45 Nimman Road, Suthep" value={form.raddr} onChange={e => set("raddr", e.target.value)} />
-                      </div>
-                      {errors.raddr && <div className="field-error show">Address is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Province <span className="req">*</span></label>
-                      <ProvinceSelect value={form.rprov} onChange={v => set("rprov", v)} hasError={!!errors.rprov} />
-                      {errors.rprov && <div className="field-error show">Province is required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Postal Code <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.rzip ? " error" : ""}${rAutoFilled ? " autofilled" : ""}`}>
-                        <span className="ii"><HashIcon /></span>
-                        <input type="text" placeholder="50200" maxLength={5} value={form.rzip} onChange={e => set("rzip", e.target.value.replace(/\D/g, ""))} />
-                      </div>
-                      {errors.rzip && <div className="field-error show">Postal code required.</div>}
-                      {rAutoFilled && <div className="autofill-hint">Province auto-filled: {form.rprov}</div>}
-                    </div>
-                    <div className="field full">
-                      <label>Delivery Notes</label>
-                      <div className="input-wrap">
-                        <textarea placeholder="Building name, landmark, special instructions…" rows={2} value={form.rnotes} onChange={e => set("rnotes", e.target.value)} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Package Details */}
-              <div className="card">
-                <div className="card-header">
-                  <div className="card-header-icon">📋</div>
-                  <div><h3>Package Details</h3><p>Type, size, weight & service</p></div>
-                </div>
-                <div className="card-body">
-
-                  <div className="sec-label">Package Type</div>
-                  <div className="pkg-selector">
-                    {PKG_TYPES.map((p, i) => (
-                      <div key={p.type} className={`pkg-opt${pkgIdx === i ? " selected" : ""}`} onClick={() => setPkgIdx(i)}>
-                        <div className="pkg-icon">{p.icon}</div>
-                        <div className="pkg-name">{p.type}</div>
-                        <div className="pkg-price">{p.price}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="sec-label" style={{ marginTop: 20 }}>Service Level</div>
-                  <div className="service-row">
-                    {SERVICES.map((s, i) => (
-                      <div key={s.label} className={`service-pill${svcIdx === i ? " selected" : ""}`} onClick={() => setSvcIdx(i)}>
-                        <span className="pill-dot" />{s.label}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="sec-label" style={{ marginTop: 20 }}>Dimensions & Weight</div>
-                  <div className="dims-row">
-                    <div className="field">
-                      <label>Weight (kg) <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.weight ? " error" : ""}`}>
-                        <input type="number" placeholder="1.5" min="0.1" step="0.1" value={form.weight} onChange={e => set("weight", e.target.value)} />
-                      </div>
-                      {errors.weight && <div className="field-error show">Required.</div>}
-                    </div>
-                    <div className="field">
-                      <label>Length (cm)</label>
-                      <div className="input-wrap"><input type="number" placeholder="30" min="1" value={form.plen} onChange={e => set("plen", e.target.value)} /></div>
-                    </div>
-                    <div className="field">
-                      <label>Width (cm)</label>
-                      <div className="input-wrap"><input type="number" placeholder="20" min="1" value={form.pwid} onChange={e => set("pwid", e.target.value)} /></div>
-                    </div>
-                    <div className="field">
-                      <label>Height (cm)</label>
-                      <div className="input-wrap"><input type="number" placeholder="15" min="1" value={form.phei} onChange={e => set("phei", e.target.value)} /></div>
-                    </div>
-                  </div>
-
-                  <div className="sec-label" style={{ marginTop: 20 }}>Contents & Handling</div>
-                  <div className="fields-grid" style={{ marginBottom: 14 }}>
-                    <div className="field full">
-                      <label>Package Contents <span className="req">*</span></label>
-                      <div className={`input-wrap${errors.contents ? " error" : ""}`}>
-                        <span className="ii"><ClipboardIcon /></span>
-                        <input type="text" placeholder="e.g. Clothing, Electronics, Documents…" value={form.contents} onChange={e => set("contents", e.target.value)} />
-                      </div>
-                      {errors.contents && <div className="field-error show">Contents description required.</div>}
-                    </div>
-                    <div className="field full">
-                      <label>Declared Value (฿)</label>
-                      <div className="input-wrap">
-                        <span className="ii"><CurrencyIcon /></span>
-                        <input type="number" placeholder="500" min="0" value={form.declval} onChange={e => set("declval", e.target.value)} />
-                      </div>
-                      <div className="field-hint">Used for insurance & customs purposes.</div>
-                    </div>
-                  </div>
-
-                  <div className="chips-row">
-                    {CHIPS.map(chip => (
-                      <div key={chip} className={`chip${chips.includes(chip) ? " on" : ""}`} onClick={() => toggleChip(chip)}>{chip}</div>
-                    ))}
-                  </div>
-
-                  <div style={{ marginTop: 16 }}>
-                    <div className="toggle-row">
-                      <div className="toggle-info">
-                        <strong>Add Insurance</strong>
-                        <span>Covers up to declared value — +฿35</span>
-                      </div>
-                      <label className="toggle-switch">
-                        <input type="checkbox" checked={form.insurance} onChange={e => set("insurance", e.target.checked)} />
-                        <span className="toggle-track" />
-                      </label>
-                    </div>
-                  </div>
-                </div>
+      {/* Success overlay */}
+      {showSuccess && (
+        <div className="modal-backdrop">
+          <div className="modal modal--sm" role="dialog" aria-modal="true" aria-labelledby="cs-success-title">
+            <div className="modal-center">
+              <div className="modal-icon modal-icon--success"><PartyPopper aria-hidden="true" /></div>
+              <h2 id="cs-success-title">Shipment Created!</h2>
+              <p>Your shipment has been registered successfully. Use the tracking ID below to monitor its progress.</p>
+              <div className="cs-success-id">
+                <div className="eyebrow">Tracking ID</div>
+                <div className="mono">{trackId}</div>
               </div>
             </div>
-
-            {/* ── Right column — Summary ── */}
-            <div>
-              <div className="summary-card">
-                <div className="summary-header">
-                  <h3>Shipment Summary</h3>
-                  <p>Live cost estimate</p>
-                </div>
-
-                <div className="tracking-preview">
-                  <div className="track-label">Tracking ID (Auto-generated)</div>
-                  <div className="track-id">{trackId}</div>
-                </div>
-
-                <div className="summary-body">
-                  <div className="sum-row"><span className="sum-key">From</span><span className="sum-val accent">{form.sprov || (form.sname ? form.sname.split(" ")[0] : "—")}</span></div>
-                  <div className="sum-row"><span className="sum-key">To</span><span className="sum-val accent">{form.rprov || (form.rname ? form.rname.split(" ")[0] : "—")}</span></div>
-                  <div className="sum-row"><span className="sum-key">Package</span><span className="sum-val">{PKG_TYPES[pkgIdx].type}</span></div>
-                  <div className="sum-row"><span className="sum-key">Service</span><span className="sum-val">{SERVICES[svcIdx].label.split("(")[0].trim()}</span></div>
-                  <div className="sum-row"><span className="sum-key">Weight</span><span className="sum-val">{form.weight ? `${form.weight} kg` : "— kg"}</span></div>
-                  <div className="sum-row"><span className="sum-key">Base Fee</span><span className="sum-val">฿{pkgBase}</span></div>
-                  <div className="sum-row"><span className="sum-key">Service Surcharge</span><span className="sum-val">{svcFee ? `฿${svcFee}` : "฿0"}</span></div>
-                  <div className="sum-row"><span className="sum-key">Weight Surcharge</span><span className="sum-val">{summary.wSurcharge ? `฿${summary.wSurcharge}` : "฿0"}</span></div>
-                  {summary.destKnown && (
-                    <div className="sum-row">
-                      <span className="sum-key">Route Fee</span>
-                      <span className="sum-val" style={{ color: summary.zoneColor }}>
-                        {form.sprov === form.rprov ? "฿0 — same province" : `฿${summary.destFee}`}
-                      </span>
-                    </div>
-                  )}
-                  <div className="sum-row"><span className="sum-key">Insurance</span><span className="sum-val">{form.insurance ? "฿35" : "—"}</span></div>
-                  <div className="sum-divider" />
-                  <div className="sum-total">
-                    <span className="total-label">Total</span>
-                    <span className="total-amt">฿{summary.total}</span>
-                  </div>
-                </div>
-
-                <div className="submit-area">
-                  <button className={`submit-btn${loading ? " loading" : ""}`} onClick={handleSubmit}>
-                    {loading ? (
-                      <span className="btn-spinner" />
-                    ) : (
-                      <>
-                        <span>Proceed to Payment</span>
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                      </>
-                    )}
-                  </button>
-                  <button className="preview-btn">
-                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                    Print Label Preview
-                  </button>
-                </div>
-              </div>
+            <div className="modal-foot">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowSuccess(false)}>Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleReset}>New Shipment</button>
             </div>
           </div>
         </div>
-
-        {/* Success overlay */}
-        {showSuccess && (
-          <div className="success-overlay show">
-            <div className="success-box">
-              <span className="success-big">🎉</span>
-              <h2>Shipment Created!</h2>
-              <p>Your shipment has been registered successfully. Use the tracking ID below to monitor its progress.</p>
-              <div className="success-track">
-                <div className="st-label">Tracking ID</div>
-                <div className="st-id">{trackId}</div>
-              </div>
-              <div className="success-actions">
-                <button className="sa-btn sa-secondary" onClick={() => setShowSuccess(false)}>Close</button>
-                <button className="sa-btn sa-primary" onClick={handleReset}>New Shipment</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+      )}
+    </AppShell>
   );
 }

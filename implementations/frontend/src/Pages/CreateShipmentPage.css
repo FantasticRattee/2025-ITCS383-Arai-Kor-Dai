@@ -1,0 +1,70 @@
+/* Create shipment: two-column form + sticky summary "label". */
+.cs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+.cs-choices-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cs-choices-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choice--row { padding-right: 36px; }
+
+.cs-handling { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; }
+
+.cs-insurance {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-top: 18px; padding: 14px 16px;
+  border: 1px solid var(--border); border-radius: var(--r); background: var(--surface-2);
+}
+.cs-insurance strong { display: block; font-weight: 600; }
+.cs-insurance span { font-size: var(--fs-sm); color: var(--muted); }
+
+.cs-summary-wrap { position: sticky; top: calc(var(--topbar-h) + 24px); }
+.cs-summary { overflow: hidden; }
+
+/* The tracking id is presented like the top of a shipping label */
+.cs-label {
+  margin: 16px 20px 0; padding: 14px 16px 12px;
+  border: 1px dashed var(--border-strong); border-radius: var(--r);
+  background: var(--surface-2);
+}
+.cs-label-id { margin-top: 4px; font-size: 20px; font-weight: 600; color: var(--ink); }
+.cs-barcode {
+  height: 26px; margin-top: 10px; opacity: 0.85;
+  background:
+    repeating-linear-gradient(90deg,
+      var(--ink) 0 2px, transparent 2px 4px, var(--ink) 4px 5px, transparent 5px 8px,
+      var(--ink) 8px 11px, transparent 11px 12px, var(--ink) 12px 13px, transparent 13px 16px,
+      var(--ink) 16px 17px, transparent 17px 19px, var(--ink) 19px 21px, transparent 21px 24px);
+}
+
+.cs-summary-body { padding-top: 16px; }
+.cs-route {
+  display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); align-items: end; gap: 8px;
+  padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.cs-route .meta-label { display: block; }
+.cs-route-val { display: block; font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-route-line { height: 10px; margin-bottom: 7px; border-top: 2px dotted var(--border-strong); }
+
+.cs-zone { display: inline-flex; align-items: center; gap: 6px; }
+
+.cs-total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin: 8px 0 18px; padding-top: 14px; border-top: 1px solid var(--ink);
+  font-size: var(--fs-md); font-weight: 600;
+}
+.cs-total-amt { font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.02em; }
+
+.cs-success-id { margin-top: 16px; padding: 12px; border-radius: var(--r); background: var(--surface-2); border: 1px dashed var(--border-strong); }
+.cs-success-id .mono { font-size: 18px; font-weight: 600; margin-top: 2px; }
+
+@media (max-width: 1199px) {
+  .cs-grid { grid-template-columns: minmax(0, 1fr); }
+  .cs-summary-wrap { position: static; }
+}
+@media (max-width: 767px) {
+  .cs-choices-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cs-choices-3 { grid-template-columns: minmax(0, 1fr); }
+  .cs-label { margin: 14px 16px 0; }
+}

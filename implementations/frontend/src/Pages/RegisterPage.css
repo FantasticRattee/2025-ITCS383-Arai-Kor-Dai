@@ -1,0 +1,49 @@
+/* Register: long form, so the brand column keeps its content at the top */
+.reg-aside .auth-aside-body { flex: 0 0 auto; justify-content: flex-start; margin-top: 24px; }
+.reg-aside .auth-foot { margin-top: auto; }
+.reg-main { justify-content: flex-start; }
+.reg-subhead { margin-top: 28px; }
+
+.reg-strength { margin-top: 2px; }
+.reg-bars { display: flex; gap: 4px; }
+.reg-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); transition: background 0.2s; }
+.reg-bar.weak { background: #c2382b; }
+.reg-bar.fair { background: #d98a1e; }
+.reg-bar.good { background: #3f9c5a; }
+.reg-bar.strong { background: #17703f; }
+.reg-hint { margin-top: 4px; font-size: var(--fs-xs); font-weight: 600; }
+
+.reg-upload {
+  min-height: 160px; display: flex; flex-direction: column;
+  border: 1.5px dashed var(--border-strong); border-radius: var(--r);
+  background: var(--surface-2); cursor: pointer; overflow: hidden;
+  transition: border-color 0.15s, background 0.15s;
+}
+.reg-upload:hover { border-color: #9aa4b0; background: #f3f5f8; }
+.reg-upload.is-drag { border-color: var(--ink); background: var(--surface-3); }
+.reg-upload.is-error { border-color: var(--danger); }
+.reg-upload.is-done { border-style: solid; border-color: var(--border); background: var(--surface); cursor: default; }
+.reg-upload-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px 16px; text-align: center; }
+.reg-upload-title { font-weight: 600; }
+.reg-upload-sub { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; }
+.reg-upload-preview img { width: 100%; height: 124px; object-fit: cover; }
+.reg-upload-bar { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 10px; border-top: 1px solid var(--border); }
+.reg-upload-bar > svg { width: 16px; height: 16px; flex: none; }
+.reg-upload-name { flex: 1; min-width: 0; font-size: var(--fs-xs); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.reg-terms { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; }
+.reg-terms .check { align-items: flex-start; line-height: 1.5; }
+.reg-terms .check input { margin-top: 2px; }
+.reg-terms .link { font-size: inherit; }
+.reg-submit { margin-top: 20px; }
+
+.reg-user-card {
+  display: flex; align-items: center; gap: 14px; text-align: left;
+  margin: 20px auto 24px; padding: 14px 16px; max-width: 360px;
+  border: 1px solid var(--border); border-radius: var(--r); background: var(--surface-2);
+}
+.reg-user-card .avatar svg { width: 24px; height: 24px; }
+
+@media (max-width: 1023px) {
+  .reg-aside .auth-aside-body { margin-top: 0; }
+}

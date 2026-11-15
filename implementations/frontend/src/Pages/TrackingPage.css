@@ -1,0 +1,101 @@
+/* Tracking page */
+.trk-search h2 { font-size: var(--fs-lg); font-weight: 600; }
+.trk-search p { margin-top: 2px; color: var(--muted); }
+.trk-search-row { display: flex; gap: 10px; margin-top: 16px; }
+.trk-search-input { flex: 1; min-width: 0; }
+.trk-search-input .input { height: 46px; font-size: 16px; }
+.trk-search-row .btn { height: 46px; padding: 0 20px; }
+.trk-quick { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: var(--fs-sm); }
+.trk-chip { height: 28px; font-size: var(--fs-xs); }
+
+.trk-error { margin-top: 16px; }
+.trk-results { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+.trk-empty { margin-top: 20px; }
+.trk-empty .empty { padding: 56px 24px; }
+
+/* Status header: tinted strip in the shipment-state colour */
+.trk-status {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 20px; border-bottom: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.trk-status-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.trk-status-icon {
+  width: 48px; height: 48px; flex: none; display: grid; place-items: center;
+  border-radius: 50%; background: var(--surface); border: 1px solid currentColor;
+}
+.trk-status-icon svg { width: 24px; height: 24px; }
+.trk-status h2 { font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.trk-status p { font-size: var(--fs-sm); color: var(--ink-2); margin-top: 2px; }
+.trk-status--transit    { background: var(--transit-bg); color: var(--transit-fg); }
+.trk-status--delivered  { background: var(--delivered-bg); color: var(--delivered-fg); }
+.trk-status--processing { background: var(--processing-bg); color: var(--processing-fg); }
+.trk-status--pending    { background: var(--pending-bg); color: var(--pending-fg); }
+.trk-status--returned   { background: var(--returned-bg); color: var(--returned-fg); }
+.trk-meta .mono { font-size: 14px; }
+
+/* Route */
+.trk-route { display: flex; align-items: flex-start; gap: 4px; }
+.trk-node { flex: none; display: flex; flex-direction: column; align-items: center; text-align: center; width: 108px; }
+.trk-node-dot {
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--ink); color: #fff;
+}
+.trk-node-dot svg { width: 18px; height: 18px; }
+.trk-node-dot--dest { background: var(--surface); color: var(--ink); border: 2px solid var(--ink); }
+.trk-node-name { margin-top: 8px; font-weight: 600; font-size: var(--fs-sm); overflow-wrap: anywhere; }
+.trk-node-sub { font-size: var(--fs-xs); color: var(--muted); }
+.trk-line { position: relative; flex: 1; height: 4px; margin-top: 18px; border-radius: 999px; background: var(--surface-3); }
+.trk-line-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: currentColor; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.trk-truck {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--surface); border: 2px solid currentColor;
+  transition: left 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.trk-truck svg { width: 15px; height: 15px; }
+.trk-route--transit { color: var(--transit-fg); }
+.trk-route--delivered { color: var(--delivered-fg); }
+.trk-route--processing { color: var(--processing-fg); }
+.trk-route--pending { color: var(--pending-fg); }
+.trk-route--returned { color: var(--returned-fg); }
+.trk-route .trk-node { color: var(--ink); }
+
+.trk-stops {
+  list-style: none; display: flex; justify-content: space-between; gap: 12px;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.trk-stop { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; }
+.trk-stop:last-child { align-items: flex-end; text-align: right; }
+.trk-stop-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); margin-bottom: 4px; }
+.trk-stop.is-passed .trk-stop-dot { background: var(--ink); }
+.trk-stop.is-current .trk-stop-dot { background: var(--transit-fg); box-shadow: 0 0 0 3px rgba(29, 91, 184, 0.18); }
+.trk-stop-name { font-size: var(--fs-sm); font-weight: 600; }
+.trk-stop-date { font-size: var(--fs-xs); color: var(--muted); }
+
+.trk-detail { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+.trk-note { margin-top: 6px; padding: 6px 10px; border-left: 3px solid var(--border-strong); background: var(--surface-2); font-size: var(--fs-sm); color: var(--ink-2); }
+.trk-fee { font-weight: 600; }
+.trk-kv-status { align-items: center; }
+
+.trk-eta {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 16px; padding: 12px 14px;
+  border-radius: var(--r); border: 1px solid var(--border); background: var(--surface-2);
+}
+.trk-eta svg { width: 22px; height: 22px; color: var(--ink-2); flex: none; }
+.trk-eta strong { display: block; font-weight: 600; }
+.trk-eta span { display: block; font-size: var(--fs-sm); color: var(--muted); }
+.trk-share { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.trk-copied { color: var(--success); border-color: #b7dcc5; }
+
+@media (max-width: 1023px) {
+  .trk-detail { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .trk-search-row { flex-direction: column; }
+  .trk-search-row .btn { width: 100%; }
+  .trk-node { width: 76px; }
+  .trk-status h2 { font-size: var(--fs-lg); }
+  .trk-status-icon { width: 40px; height: 40px; }
+}
