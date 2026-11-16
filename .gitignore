@@ -1,1 +1,4 @@
 node_modules/
+
+# Local settings with passwords and keys stay on your machine; copy .env.example to .env
+.env
